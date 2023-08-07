@@ -1,0 +1,15 @@
+.qmake.stash
+Makefile
+mandel
+mndcombi.o
+mndlbrot.o
+mndynamo.o
+moc_predefs.h
+moc_qmnplane.cpp
+moc_qmnplane.o
+moc_qmnshell.cpp
+moc_qmnshell.o
+qmndemos.o
+qmndialg.o
+qmnplane.o
+qmnshell.o
