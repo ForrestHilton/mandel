@@ -35,6 +35,113 @@
 #define USING_QmnIcon_xpm16
 #define USING_QmnIcon_xpm64
 #include "qmnshell.h"
+#include <fstream>
+
+#undef LAMINATION_COLOR
+
+class Lamination;
+
+class Component;
+
+struct Chord
+{
+    int p1, q1, p2, q2;
+    int level;
+    Component* nextcomp;
+};
+
+bool operator == (const struct Chord &c1, const struct Chord &c2)
+{
+    if((c1.p1*c2.q1==c1.q1*c2.p1)&&(c1.p2*c2.q2==c1.q2*c2.p2))
+        return true;
+    else
+        return false;
+}
+
+bool operator < (const struct Chord &c1, const struct Chord &c2)
+{
+    if (c2.p2*c2.q1-c2.p1*c2.q2>0)        //normal orientation c2
+
+    {
+        return ((c1.p2*c2.q1-c2.p1*c1.q2>0)&&(c1.p1*c2.q1-c2.p1*c1.q1>0)&&(c1.p2*c2.q2-c2.p2*c1.q2<0)&&(c1.p1*c2.q2-c2.p2*c1.q1<0));
+    }
+
+    else
+
+    {
+
+        return (((c1.p2*c2.q1-c2.p1*c1.q2>0)||(c1.p2*c2.q2-c2.p2*c1.q2<0))&&((c1.p1*c2.q1-c2.p1*c1.q1>0)||(c1.p1*c2.q2-c2.p2*c1.q1<0)));
+
+
+    }
+
+
+}
+
+bool operator & (const struct Chord &c1, const struct Chord &c2)
+{
+
+    bool in1, in2;
+
+    if (c2.p2*c2.q1-c2.p1*c2.q2>0)        //normal orientation c2
+
+    {
+        in2=((c1.p2*c2.q1-c2.p1*c1.q2>0)&&(c1.p2*c2.q2-c2.p2*c1.q2<0));
+        in1=((c1.p1*c2.q1-c2.p1*c1.q1>0)&&(c1.p1*c2.q2-c2.p2*c1.q1<0));
+    }
+
+    else
+
+    {
+        in2=((c1.p2*c2.q1-c2.p1*c1.q2>0)||(c1.p2*c2.q2-c2.p2*c1.q2<0));
+        in1=((c1.p1*c2.q1-c2.p1*c1.q1>0)||(c1.p1*c2.q2-c2.p2*c1.q1<0));
+    }
+
+    return in1 xor in2;
+
+}
+
+class Component
+{
+public:
+    struct Chord ceiling;
+    std::list<struct Chord> boundary;
+    Component* FindComponent(int p, int q);
+    Component* FindComponentOut(int p, int q);
+    void Draw(QmnPlane* dplane);
+    Component(struct Chord leaf)
+    { ceiling = leaf;};
+    void PrintToFile(std::ofstream& myfile, int l);
+    void Pullback(Lamination* Lam, int level);
+    void DrawRays(QmnPlane* dplane,mdouble x, mdouble y);
+    int AddChord(struct Chord leaf);
+};
+
+class MComponent
+{
+public:
+
+    std::list<struct Chord> boundary;
+    Component* FindComponent(int p, int q);
+    Component* FindComponentOut(int p, int q);
+};
+
+class Lamination
+{
+public:
+    MComponent MainComponent;
+    void createCML(int n);
+    int CMLconjugate(int& p, int&q);
+    void PullbackLamination(int p, int q, int depth);
+    int AddChord(struct Chord leaf);
+    Component* FindComponent(int p, int q);
+    Component* FindComponentOut(int p, int q);
+    int Contains(int p, int q);
+    void Draw(QmnPlane* dplane);
+    void DrawRays(QmnPlane* dplane,mdouble x, mdouble y);
+    void PrintToFile();
+    void Pullback( int level);
+};
 
 const mdouble cFb = -1.40115518909205060052L, dFb = 4.66920160910299067185L,
    aFb = 2.50290787509589282228L;  //Fibonacci -1.8705286321646448888906L
@@ -448,6 +555,10 @@ void QmnShell::createActions()
       f3AG);
    f3Acts[9] = new QAction(
       trUtf8("&9: 2-cycle of Siegel disks [Q]"), f3AG);
+   f3Acts[10] = new QAction(
+       trUtf8("&10: Symmetric cubic z^3-3\xce\xbb^2z"), f3AG);
+   f3Acts[11] = new QAction(
+       trUtf8("&11: Cubic z^3+cz^2 + b z [Q]"), f3AG);
    connect(f3AG, SIGNAL(triggered(QAction*)), this, SLOT(setF(QAction*)));
    f3Menu = new QMenu(this); f3Menu->addActions(f3AG->actions());
    f3Act = new QAction(trUtf8("&3: Cubic polynomials"), ftypeAG);
@@ -715,10 +826,12 @@ void QmnShell::updateActions()
    greenAct->setEnabled(ftype <= 1 && !sphere);
    rayAct->setEnabled(!ftype || (ftype == 1 && !sphere)
       || (ftype == 28 && (signtype == 2 || signtype == -2) )
-      || (signtype < 0 && (ftype == 95 || ftype == 25 || ftype == 35) ) );
+      || (signtype < 0 && (ftype == 95 || ftype == 25 || ftype == 35) )
+                      || (ftype==3 &&( (signtype==10)||(signtype==-10) ))
+                      || (ftype==103 && (signtype==-11)));
    rayPointAct->setEnabled(!ftype || ftype == 58);
    portraitAct->setEnabled((!ftype && gamma >= 0.0) || ftype == 58);
-   laminatAct->setEnabled((!ftype && gamma >= 0.0) || ftype == 58);
+   laminatAct->setEnabled((!ftype && gamma >= 0.0) || ftype == 58 || (ftype==3 && ((signtype==10)||(signtype==-10))));
    wakeAct->setEnabled((signtype > 0 && !ftype) || ftype == 58);
    kneadAct->setEnabled((signtype > 0 && !ftype) || ftype == 58);
    spider1Act->setText(trUtf8("&Mating by angle ..."));
@@ -788,6 +901,12 @@ void QmnShell::updateActions()
    {  degreeAct->setEnabled(true);
       degreeAct->setText(trUtf8("&Change multiplier ..."));
    }
+
+//  cubic with a/i fp
+
+   if ((ftype==103)&&((signtype==11)||(signtype==-11))) degreeAct->setText(trUtf8("&Change b ..."));
+
+
 ////////////////////////////////////////////// not written yet ///////////////
    if (ftype == 1) algoActs[4]->setEnabled(false);
    if (ftype == 1) algoActs[5]->setEnabled(false);
@@ -1553,6 +1672,17 @@ void QmnShell::setRay(QAction *act)
          &N1, &N2, &method, &q, 3, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
       if (!dialog->exec()) return; if (ftype == 28) method = 5;
+
+      //****** for cubic only Newton
+      if ((ftype == 3)||(ftype==103)) method = 1;
+
+      if ((ftype==103)&&(signtype==-11))
+      {
+         mdouble L,M;
+         f->getB(L,M);
+         theplane->newtonRayGeneralCubic(N1, N2, x, y, L, M,q);
+      }
+      else{
       if (!method && dplane->backRay(N1, N2, x, y, q, Qt::white, 1))
          method = 1;
       if (method & 1)
@@ -1561,6 +1691,7 @@ void QmnShell::setRay(QAction *act)
       {  if (signtype > 0) { drawLater = 0; dplane->stop(); }
          else pplane->stop();
          theplane->traceRay(signtype, mdouble(N1)/mdouble(N2), f, x, y, q);
+      }
       }
    }
    if (act == rayPointAct)
@@ -1682,13 +1813,69 @@ void QmnShell::setRay(QAction *act)
       if (sphere) dplane->setType(-1); else dplane->setPlane(0, 0, 2.0, 0);
    }
    if (act == laminatAct)
-   {  mdouble x, y, u, v; dplane->getPoint(x, y);
+   {
+      mdouble x, y, u, v; dplane->getPoint(x, y);
       qulonglong N = 0ULL, N1 = 0ULL, N2;
-      QmnCombiDialog *dialog = new QmnCombiDialog(enterAngleString,
-         &N1, &N2, 3, this);
+
+      QString prompt=enterAngleString;
+      if (ftype==3) prompt+="(Put 0 in the numerator to get SCCL)";
+
+      QmnCombiDialog *dialog = new QmnCombiDialog(prompt,
+                                                  &N1, &N2, 3, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      if (!dialog->exec() || !N1) return;
-      uint n; int k, p = mndAngle::normalize(N1, N2, k); u = (mdouble)(N2);
+      if (!dialog->exec()) return;
+
+
+      if (ftype==3)  // symmetric cubic laminations
+      {
+          uint n; int k;
+         pplane->getNmax(n); if (n > 20u) n = 5u;
+
+         if (!N1)
+         {
+            DrawCML(n);
+            return;
+         }
+
+          //u = (mdouble)(N2);
+
+
+          //pplane->getNmax(n); if (n > 20u) n = 5u;
+          //----------- number of preimages
+          //n=3u;
+
+          if (signtype < 0) //no crash when n + k + p ~ 64
+          {  dplane->setPoint(x, y); f->getParameter(x, y); qulonglong K, D = 1ULL;
+
+            Lamination Lam;
+            Lam.PullbackLamination(N1, N2, n);
+            Lam.DrawRays(dplane,x,y);
+            /*for (k = 0; k <= n; k++)
+            {  for (K = 0ULL; K < D; K++)
+                {  dplane->newtonRayC(signtype, N1 + K*N2, D*N2, x, y,5,Qt::red);
+                   dplane->newtonRayC(signtype, D*N2 - N1 - K*N2, D*N2, x, y,5,Qt::red);
+                    //if (N) dplane->backRay(N + K*N2, D*N2, x, y);
+                }
+                D *= 3;
+            }
+            */
+            return;
+          }
+
+          DrawCPBL(N1,N2,n);
+
+
+          // N = N1; mndAngle::conjugate3(N, N2); v = ((mdouble)(N))/u; u = ((mdouble)(N1))/u;
+
+
+          return;
+      }
+
+      else
+      {
+          if (!N1) return;
+
+       uint n; int k, p = mndAngle::normalize(N1, N2, k); u = (mdouble)(N2);
       if (!k && p)
       { N = N1; mndAngle::conjugate(N, N2); v = ((mdouble)(N))/u; }
       u = ((mdouble)(N1))/u; dplane->setPoint(0.5*u, 0.0);
@@ -1728,6 +1915,7 @@ void QmnShell::setRay(QAction *act)
       else dplane->drawLamination(0.5*u, 0.5*u + 0.5, n);
       updateRegion = true; drawLater = 0; dplane->setPoint(0, 0);
       if (sphere) dplane->setType(-1); else dplane->setPlane(0, 0, 2.0, 0);
+     }
    }
    if (act == wakeAct)
    {  uint k = 1, r = 2; qulonglong n, d; mdouble x, y;
@@ -2110,6 +2298,574 @@ void QmnShell::setPath(QAction *act)
  
 } //setPath
 
+
+void Lamination::PrintToFile()
+{
+
+   std::ofstream myfile;
+   myfile.open("cml.txt");
+   for (struct Chord b: MainComponent.boundary)
+   {
+      b.nextcomp->PrintToFile(myfile,0);
+   }
+   myfile.close();
+   return;
+}
+
+void Component::PrintToFile(std::ofstream& myfile, int l)
+{
+   (myfile)<<std::to_string(l)+':'+std::to_string(ceiling.p1)+' '+std::to_string(ceiling.q1)+' '+std::to_string(ceiling.p2)+' '+std::to_string(ceiling.q2)+" -- "+std::to_string(ceiling.level)+'\n';
+   for (struct Chord b: boundary)
+   {
+      b.nextcomp->PrintToFile(myfile, l+1);
+   }
+}
+
+int Lamination::CMLconjugate(int& p, int&q)
+{
+       Component* comp=FindComponent(p,q);
+       if (comp==NULL) return 0;
+       if ((p*comp->ceiling.q1-q*comp->ceiling.p1==0))
+           {
+            p=comp->ceiling.p2;
+            q=comp->ceiling.q2;
+            return 1;
+           }
+
+       if (p*comp->ceiling.q2-q*comp->ceiling.p2==0)
+           {
+            p=comp->ceiling.p1;
+            q=comp->ceiling.q1;
+            return 1;
+           }
+
+       return 0;
+}
+
+void Lamination::Pullback(int level)
+{
+       for (struct Chord b: MainComponent.boundary)
+       {
+            b.nextcomp->Pullback(this, level);
+       }
+
+       return;
+}
+
+void Component::Pullback(Lamination* Lam, int level)
+{
+       if (ceiling.level==level-1)
+       {
+            mdouble dist=((mdouble)ceiling.p2/ceiling.q2-(mdouble)ceiling.p1/ceiling.q1)/3;
+            int count=0;
+            if (dist>0)
+            {
+         count+=Lam->AddChord({ceiling.p1,3*ceiling.q1,ceiling.p2,3*ceiling.q2,level,NULL});
+         count+=Lam->AddChord({ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         count+=Lam->AddChord({2*ceiling.q1+ceiling.p1,3*ceiling.q1,2*ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+            }
+
+            else
+            {
+         count+=Lam->AddChord({2*ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.p2,3*ceiling.q2,level,NULL});
+         count+=Lam->AddChord({ceiling.p1,3*ceiling.q1,ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         count+=Lam->AddChord({ceiling.q1+ceiling.p1,3*ceiling.q1,2*ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+            }
+
+
+            if (count<3)
+            {
+         Lam->AddChord({ceiling.p1,3*ceiling.q1,ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({2*ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.p2,3*ceiling.q2,level,NULL});
+
+         Lam->AddChord({ceiling.p1,3*ceiling.q1,ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({2*ceiling.q1+ceiling.p1,3*ceiling.q1,ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+
+         Lam->AddChord({ceiling.p1,3*ceiling.q1,2*ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({ceiling.q1+ceiling.p1,3*ceiling.q1,2*ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+         Lam->AddChord({2*ceiling.q1+ceiling.p1,3*ceiling.q1,2*ceiling.q2+ceiling.p2,3*ceiling.q2,level,NULL});
+            }
+       }
+       for (struct Chord b: boundary)
+       {
+
+            b.nextcomp->Pullback(Lam, level);
+       }
+
+       return;
+}
+
+void Lamination::PullbackLamination(int p, int q, int depth)
+{
+       if (q%3) return;
+
+       int d=q/3, k=p, period=1, r;
+
+       if (d%3==0) return;
+
+       if (!(d&1)) r=d>>1;
+       else r=-d;
+
+       if (k>d) k-=d;
+       if (k>d) k-=d;
+
+       int n=k;
+       k=3*k;
+
+       if (k>d) k-=d;
+       if (k>d) k-=d;
+
+       while ((k!=n)&&(k!=n+r)&&(k+r!=n))
+       {
+            period++;
+            k=3*k;
+
+            if (k>d) k-=d;
+            if (k>d) k-=d;
+       }
+
+
+
+       Lamination cml;
+
+       cml.createCML(period);
+
+       int p1=p, q1=q;
+       if (!cml.CMLconjugate(p1,q1)) return;
+
+       //p=1;q=15;p1=11; q1=240;
+
+       AddChord({p,q,p1,q1,0,NULL});
+       AddChord({q+2*p,2*q,q1+2*p1,2*q1,0,NULL});
+
+       int s=p,t=q,u=p1,v=q1;
+
+       for(int i=0; i<=period; i++)
+       {
+            s*=3; if (s>t) s-=t; if (s>t) s-=t;
+            u*=3; if (u>v) u-=v; if (u>v) u-=v;
+            AddChord({s,t,u,v,0,NULL});
+            AddChord({2*s+t,2*t,2*u+v,2*v,0,NULL});
+       }
+
+       for(int level=1; level<=depth; level++)
+       {
+            Pullback(level);
+       }
+
+       PrintToFile();
+
+       return;
+}
+
+Component* MComponent::FindComponent(int p, int q)
+{
+       for (struct Chord b: boundary)
+       {
+      if (b.p2*b.q1-b.p1*b.q2>=0){
+         if ((p*b.q1-b.p1*q>=0)&&(p*b.q2-b.p2*q<=0))
+            return b.nextcomp->FindComponent(p,q);}
+      else   {if ((p*b.q1-b.p1*q>=0)||(p*b.q2-b.p2*q<=0))
+            return b.nextcomp->FindComponent(p,q);}
+       }
+       return NULL;
+}
+
+Component* MComponent::FindComponentOut(int p, int q)
+{
+       for (struct Chord b: boundary)
+       {
+      if (b.p2*b.q1-b.p1*b.q2>=0){
+         if ((p*b.q1-b.p1*q>0)&&(p*b.q2-b.p2*q<0))
+            return b.nextcomp->FindComponentOut(p,q);}
+      else   {if ((p*b.q1-b.p1*q>0)||(p*b.q2-b.p2*q<0))
+            return b.nextcomp->FindComponentOut(p,q);}
+       }
+       return NULL;
+}
+
+
+Component* Component::FindComponent(int p, int q)
+{
+       for (struct Chord b: boundary)
+       {
+
+      if (b.p2*b.q1-b.p1*b.q2>=0){
+            if ((p*b.q1-b.p1*q>=0)&&(p*b.q2-b.p2*q<=0))
+            return b.nextcomp->FindComponent(p,q);}
+      else   {if ((p*b.q1-b.p1*q>=0)||(p*b.q2-b.p2*q<=0))
+        return b.nextcomp->FindComponent(p,q);}
+       }
+
+       return this;
+}
+
+Component* Component::FindComponentOut(int p, int q)
+{
+       for (struct Chord b: boundary)
+       {
+
+      if (b.p2*b.q1-b.p1*b.q2>=0){
+            if ((p*b.q1-b.p1*q>0)&&(p*b.q2-b.p2*q<0))
+        return b.nextcomp->FindComponentOut(p,q);}
+      else   {if ((p*b.q1-b.p1*q>0)||(p*b.q2-b.p2*q<0))
+        return b.nextcomp->FindComponentOut(p,q);}
+       }
+
+       return this;
+}
+
+
+Component* Lamination::FindComponent(int p, int q)
+{
+
+       return MainComponent.FindComponent( p, q);
+}
+
+Component* Lamination::FindComponentOut(int p, int q)
+{
+
+       return MainComponent.FindComponentOut( p, q);
+}
+
+
+int Component::AddChord(struct Chord leaf)
+{
+       for  (struct Chord b: boundary)
+       {
+      if (leaf==b) return 1;
+      if (leaf<b) return b.nextcomp->AddChord(leaf);
+      if ((b&leaf)) return 0;
+       }
+
+       leaf.nextcomp=new Component(leaf);
+
+       std::list<struct Chord>::iterator i=boundary.begin();
+
+       while (i != boundary.end())
+       { struct Chord b=*i;
+      if (b<leaf)
+       {
+            leaf.nextcomp->boundary.push_back(b);
+
+            boundary.erase(i++);
+
+      } else ++i;
+       }
+
+boundary.push_back(leaf);
+
+       return 1;
+}
+
+int Lamination::AddChord(struct Chord leaf)
+{
+       leaf.p1%=leaf.q1;
+       leaf.p2%=leaf.q2;
+       mdouble dist=(mdouble)leaf.p2/(mdouble)leaf.q2-(mdouble)leaf.p1/(mdouble)leaf.q1;
+       if ((dist>0.5)||((dist<0)&&(dist>-0.5)))
+       {
+      int t1=leaf.p1, t2=leaf.q1;
+      leaf.p1=leaf.p2;
+      leaf.q1=leaf.q2;
+      leaf.q2=t2;
+      leaf.p2=t1;
+       }
+
+       for  (struct Chord b: MainComponent.boundary)
+       {
+      if (leaf==b) return 1;
+      if (leaf<b) return b.nextcomp->AddChord(leaf);
+      if (leaf&b) return 0;
+       }
+
+       leaf.nextcomp=new Component(leaf);
+
+       std::list<struct Chord>::iterator i=MainComponent.boundary.begin();
+
+       while (i != MainComponent.boundary.end())
+       { struct Chord b=*i;
+      if (b<leaf)
+      {
+            leaf.nextcomp->boundary.push_back(b);
+
+            MainComponent.boundary.erase(i++);
+
+      } else ++i;
+       }
+
+       MainComponent.boundary.push_back(leaf);
+
+       return 1;
+
+       /*Component* compIn1=FindComponent(leaf.p1,leaf.q1);
+
+       Component* compIn2=FindComponent(leaf.p2,leaf.q2);
+       Component* comp;
+
+       if (compIn1==compIn2) comp=compIn1;
+       else {
+            Component* compOut2=FindComponentOut(leaf.p2,leaf.q2);
+
+            if (compIn1==compOut2) comp=compIn1;
+            else {
+              Component* compOut1=FindComponentOut(leaf.p1,leaf.q1);
+                if (compIn2==compOut1) comp=compIn2;
+                 else {
+                     if (compOut1==compOut2) comp=compOut1;
+                     else return 0;
+                        }
+            }
+       }
+
+       //if (comp!=FindComponentOut(leaf.p2,leaf.q2)) return 0;
+
+       if (comp==NULL)
+       {
+        leaf.nextcomp=new Component(leaf);
+        MainComponent.boundary.push_back(leaf);
+       }
+       else
+       {
+        if ((leaf.p1*comp->ceiling.q1-leaf.q1*comp->ceiling.p1==0)
+           && (leaf.p2*comp->ceiling.q2-leaf.q2*comp->ceiling.p2==0)) return 1;
+
+        leaf.nextcomp=new Component(leaf);
+
+        if (leaf.p2*leaf.q1-leaf.p1*leaf.q2>0)        //normal orientation
+
+        {
+                        std::list<struct Chord>::iterator i=comp->boundary.begin();
+                        while (i != comp->boundary.end())
+                        //for (struct Chord b: comp->boundary)
+                        { struct Chord b=*i;
+                     if ((b.p2*leaf.q1-leaf.p1*b.q2>0)&&(b.p1*leaf.q1-leaf.p1*b.q1>0)&&(b.p2*leaf.q2-leaf.p2*b.q2<0)&&(b.p1*leaf.q2-leaf.p2*b.q1<0))
+                     {
+                         leaf.nextcomp->boundary.push_back(b);
+
+                         comp->boundary.erase(i++);
+
+                     } else ++i;
+                        }
+        }
+
+        else
+
+        {
+                        std::list<struct Chord>::iterator i=comp->boundary.begin();
+                        while (i != comp->boundary.end())
+                        //for (struct Chord b: comp->boundary)
+                        { struct Chord b=*i;
+                     if (((b.p2*leaf.q1-leaf.p1*b.q2>0)||(b.p2*leaf.q2-leaf.p2*b.q2<0))&&((b.p1*leaf.q1-leaf.p1*b.q1>0)||(b.p1*leaf.q2-leaf.p2*b.q1<0)))
+                     {
+                         leaf.nextcomp->boundary.push_back(b);
+
+                         comp->boundary.erase(i++);
+
+                     } else ++i;
+                        }
+        }
+
+        comp->boundary.push_back(leaf);
+
+
+
+       }
+   return 1;*/
+}
+
+int Lamination::Contains(int p, int q)
+{
+    Component* comp=FindComponent(p,q);
+   if (comp==NULL) return 0;
+   if ((p*comp->ceiling.q1-q*comp->ceiling.p1==0)
+       || (p*comp->ceiling.q2-q*comp->ceiling.p2==0)) return 1;
+
+   return 0;
+
+}
+
+void Lamination::createCML(int n)
+{
+   AddChord({1,6,1,3,1,NULL});
+   AddChord({2,3,5,6,1,NULL});
+   AddChord({5,12,7,12,1,NULL});
+   AddChord({11,12,1,12,1,NULL});
+   //if (Contains(1,24)) AddChord({1,24,23,24,NULL});
+   //if (!Contains(1,48)) AddChord({1,48,47,48,NULL});
+   //AddChord({1,49,45,48,NULL});
+   int d=48;
+
+   for(int p=2;p<=n; p++)
+
+   {
+        for (int i=1; i<d; i+=2)
+        {
+            if (i%3==0) continue;
+            if (Contains(i,d)) continue;
+            Component* comp=FindComponent(i,d);
+            for (int j=i+2; j<d; j+=2)
+            {
+                if (j%3==0) continue;
+                if (Contains(j,d)) continue;
+                if (FindComponent(j,d)==comp)
+                {
+                    AddChord({i,d,j,d,2*p-1,NULL});
+        break;
+                }
+            }
+
+        }
+
+        d=d/2;
+
+        for (int i=1; i<d; i++)
+        {
+            if (i%3==0) continue;
+            if (Contains(i,d)) continue;
+            Component* comp=FindComponent(i,d);
+            for (int j=i+1; j<d; j++)
+            {
+                if (j%3==0) continue;
+                if (Contains(j,d)) continue;
+                if (FindComponent(j,d)==comp)
+                {
+                    AddChord({i,d,j,d,2*p,NULL});
+                    break;
+                }
+            }
+
+        }
+
+        d=6*d+12;
+   }
+
+   return;
+}
+
+void Component::Draw(QmnPlane* dplane)
+{
+   for (struct Chord b: boundary)
+   {
+        QColor color=
+
+#ifdef LAMINATION_COLOR
+            QColor::fromHsv(30*b.level,200,255,255);
+#else
+        Qt::blue;
+#endif
+        dplane->drawOrtho((mdouble)b.p1/b.q1,(mdouble) b.p2/b.q2, color);
+        b.nextcomp->Draw(dplane);
+   }
+   return;
+}
+
+
+void Lamination::DrawRays(QmnPlane* dplane, mdouble x, mdouble y)
+{
+
+   for (struct Chord b: MainComponent.boundary)
+   {
+        //QColor color=QColor::fromHsv(30*b.level,200,255,255);
+
+        //dplane->newtonRayC(-10, b., D*N2, x, y,5,Qt::red);
+
+        //dplane->drawOrtho((mdouble)b.p1/b.q1, (mdouble)b.p2/b.q2, color);
+        b.nextcomp->DrawRays(dplane,x,y);
+   }
+   return;
+}
+
+void Component::DrawRays(QmnPlane* dplane, mdouble x, mdouble y)
+{
+   QColor color=
+
+#ifdef LAMINATION_COLOR
+       QColor::fromHsv(30*ceiling.level,200,255,255);
+#else
+       Qt::blue;
+#endif
+   dplane->newtonRayC(-10,ceiling.p1,ceiling.q1, x, y,5, color);
+   dplane->newtonRayC(-10,ceiling.p2,ceiling.q2, x, y,5, color);
+   for (struct Chord b: boundary)
+   {
+
+
+        //
+
+        //dplane->drawOrtho((mdouble)b.p1/b.q1, (mdouble)b.p2/b.q2, color);
+        b.nextcomp->DrawRays(dplane,x,y);
+   }
+   return;
+}
+void Lamination::Draw(QmnPlane* dplane)
+{
+
+   for (struct Chord b: MainComponent.boundary)
+   {
+        QColor color=
+
+#ifdef LAMINATION_COLOR
+            QColor::fromHsv(30*b.level,200,255,255);
+#else
+            Qt::blue;
+#endif
+
+
+
+        dplane->drawOrtho((mdouble)b.p1/b.q1, (mdouble)b.p2/b.q2, color);
+        b.nextcomp->Draw(dplane);
+   }
+   return;
+}
+
+void QmnShell::DrawCML(int n)
+{
+   bool sphere = (dplane->getType() < 0); if (sphere) dplane->setType(0);
+   dplane->setPlane(0, 0, 1.2, 0); dplane->draw(f, 0, themode);
+   dplane->drawEllipse(0, 0, 1.0, 1.0, Qt::green);
+   //dplane->drawOrtho(u, v);
+
+   Lamination cml=*new Lamination;
+   cml.createCML(n);
+
+
+   cml.Draw(dplane);
+   //cml.PrintToFile();
+
+
+
+   /*mdouble u,v;
+   qulonglong K, D = 1ULL,N1,N;
+   for (D = 2ULL; D <= 5ULL; D++)
+   { if (D%3==0) D++;
+      for (K = 1ULL; K < D; K++)
+      {
+         u = (mdouble)(D);
+         N1=K;
+         N = N1; mndAngle::conjugate3(N, D); v = ((mdouble)(N))/u; u = ((mdouble)(N1))/u;
+         dplane->drawOrtho(u/3, v/3);
+
+      }
+   }*/
+   return;
+}
+
+void  QmnShell::DrawCPBL(qulonglong p, qulonglong q, int depth)
+{
+   bool sphere = (dplane->getType() < 0); if (sphere) dplane->setType(0);
+   dplane->setPlane(0, 0, 1.2, 0); dplane->draw(f, 0, themode);
+   dplane->drawEllipse(0, 0, 1.0, 1.0, Qt::green);
+
+   Lamination CPBL;
+   CPBL.PullbackLamination(p,q,depth);
+   CPBL.Draw(dplane);
+
+   return;
+}
+
 void QmnShell::setAS(QAction *act)
 {  if (act == FeigenbaumAct)
    {  mdouble x, y, u, v;
@@ -2425,6 +3181,19 @@ void QmnShell::setF(QAction *act)
    {  pplane->stop(); dplane->stop(); drawLater = 0;
       f->setDegree(3); pMoved(); return;
    }
+
+   // cubic with a/i fp
+   if (act == degreeAct && ftype == 103 &&((signtype==11)||(signtype==-11)))
+   {
+      mdouble x,y;
+      QmnDoubleDialog *dialog = new QmnDoubleDialog(trUtf8(
+                                                        "z^3 + c z^2 + bz , adjust the real part "
+                                                        "and the imaginary part of b:"), &x, &y, 6, this);
+      connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!dialog->exec()) return;
+      pplane->stop(); dplane->stop(); st = 11; f->startPlane(0, x, y);
+   }
+   else
    if (act == degreeAct && ftype > 100)
    {  mdouble t = .61803398874989484820L;
       QmnDoubleDialog *dialog = new QmnDoubleDialog(trUtf8(
@@ -2455,6 +3224,21 @@ void QmnShell::setF(QAction *act)
    { ftype = 3; st = i; delete f; f = new mndcubic(st); }
    for (i = 8; i <= 9; i++) if (act == f3Acts[i])
    { ftype = 103; st = i - 7; f = new mndcubicsiegel(st); }
+
+   // symmetric cubic
+   if (act == f3Acts[10])
+   {
+      ftype = 3; st = 10; delete f; f = new mndcubic(st);
+   }
+
+   // cubic with attracting/ind orbit
+
+   if (act == f3Acts[11])
+   {
+      ftype = 103; st = 11; delete f; f = new mndcubicsiegel(st);
+   }
+
+
    if (act == f4Act) { f4Menu->exec(QCursor::pos()); return; }
 
    if (act == f4Acts[0])

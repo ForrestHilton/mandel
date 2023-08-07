@@ -36,6 +36,14 @@ void mndAngle::twice(qulonglong &n, qulonglong &d)
    n -= large; n <<= 1; large -= (d - large); n += large;
 }
 
+void mndAngle::trice(qulonglong &n, qulonglong &d)
+{  if (n >= d) return;
+   if (!(d % 3)) { d = d/3; if (n >= d) n -= d;if (n >= d) n -= d; return; }
+   qulonglong large = 1LL; large <<= 62; //avoid overflow:
+   if (n < large) { n =n*3; if (n >= d) n -= d;if (n >= d) n -= d; return; }
+   n -= large; n =n*3;  large = 3*large-d; n += large;
+}
+
 int mndAngle::conjugate(qulonglong &n, qulonglong &d)
 {  int j, k, p = normalize(n, d, k); if (!p || k) return 0;
    if (p == 2) n = 3LL - n; if (p <= 2) return 1;
@@ -64,6 +72,53 @@ int mndAngle::conjugate(qulonglong &n, qulonglong &d)
    return j; //gcd of former j and p is period of characteristic point.
 }//conjugate64
 
+int mndAngle::conjugate3(qulonglong &n, qulonglong &d)
+{
+   if (d%3==0) return -1;
+
+
+   qulonglong p=n,q=d,p1,q1;
+   if (mndAngle::rotation3(p,q)==-1) return -1;
+
+   for (qulonglong k=1; k<d;k++)
+   {
+      p1=n+k; q1=d;
+      if (mndAngle::rotation3(p1,q1)==1)
+      {
+         if ((p1==p)&&(q1==q)) {n+=k; return 1;}
+      }
+   }
+
+   return 0;
+}
+
+
+
+int mndAngle::rotation3(qulonglong &n, qulonglong &d)
+{
+   if (d%3==0) return -1;
+   if (n>d) n=n%d;
+
+   qulonglong p=1,k=1, t=3*n, prev=n;
+   if (t>d) t-=d;
+   if (t>d) t-=d;
+
+   while (t!=n)
+   {
+      t=3*t;
+      if (t>d) t-=d;
+      if (t>d) t-=d;
+      k++;
+      if (prev>t) p++;
+      prev=t;
+   }
+
+   n=p;
+   d=k;
+
+   return 1;
+}
+
 qulonglong mndAngle::wake(int k, int r, qulonglong &n)
 {  if (k <= 0 || k >= r || r > 64) return 0LL;
    qulonglong d = 1LL; int j, s = 0; n = 1LL;
@@ -85,6 +140,8 @@ int mndAngle::setAngle(qulonglong n, qulonglong d, int &k)
    N = n; D = d; P = normalize(N, D, K);
    k = K; return P;
 }
+
+
 
 /*
 int mndAngle::realSpider(qulonglong n, qulonglong d, mdouble &c)

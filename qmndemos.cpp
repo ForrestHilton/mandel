@@ -19,6 +19,7 @@
 #define USING_QmnRabbit16
 #include "qmnshell.h"
 
+
 const mdouble cFb = -1.40115518909205060052L, dFb = 4.66920160910299067185L,
    aFb = 2.50290787509589282228L;
 

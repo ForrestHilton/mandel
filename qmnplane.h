@@ -146,8 +146,15 @@ public:
      const int quality = 5, QColor color = Qt::white, int mode = 1);
    int newtonRay(int signtype, qulonglong num, qulonglong denom, mdouble &a,
      mdouble &b, int quality = 5, QColor color = Qt::white, int mode = 1);
+   int newtonRayGeneralCubic(qulonglong N1, qulonglong N2, mdouble cr, mdouble ci, mdouble br, mdouble bi, int q);
+   int rayNewtonGeneralCubic(uint n, mdouble cr, mdouble ci,
+                             mdouble br, mdouble by, mdouble&x, mdouble& y,mdouble rlog, mdouble ilog);
    int rayNewton(int signtype, uint n, mdouble a, mdouble b,
      mdouble &x, mdouble &y, mdouble rlog, mdouble ilog);
+   int newtonRayC(int signtype, qulonglong num, qulonglong denom, mdouble &a,
+                 mdouble &b, int quality = 5, QColor color = Qt::white, int mode = 1);
+   int rayNewtonC(int signtype, uint n, mdouble a, mdouble b,
+                 mdouble &x, mdouble &y, mdouble rlog, mdouble ilog);
    int tricornNewton(int signtype, uint n, mdouble a, mdouble b,
      mdouble &x, mdouble &y, mdouble rlog, mdouble ilog);
    bool saveEPS(int bpp, const QString &fileName);

@@ -91,6 +91,8 @@ protected slots:
    void setF(QAction *act);
    void setFile(QAction *act);
    void help(QAction *act);
+   void DrawCML(int n);
+   void DrawCPBL(qulonglong p, qulonglong q, int depth);
 protected:
    uint pmode, dmode, *themode;
    uint lsppp; //assumed to be at least 32bit
@@ -213,7 +215,7 @@ protected:
       *f1Act,
       *f2Act,
       *f3Act,
-      *f3Acts[10],
+      *f3Acts[12],
       *f4Act,
       *f4Acts[10],
       *f5Act,

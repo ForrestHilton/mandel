@@ -184,6 +184,7 @@ public:
    virtual int minMode(int) const { return 0; }
    virtual int maxMode(int) const { return 3; }
    virtual void setParameter(mdouble a, mdouble b) { A = a; B = b; }
+   virtual void getB (mdouble& a, mdouble& b) {  }
    virtual void getParameter(mdouble &a, mdouble &b) const { a = A; b = B; }
    virtual void setDegree(int) {}
    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const = 0;
@@ -228,10 +229,12 @@ protected:
 public:
    mndcubicsiegel(int subtype0) : mndsiegel(subtype0)
    {  bailout = 100.0L; //c = 0 would have singular cr.pt.:
+      if (subtype==11) {subtype=1;};
       if (subtype != 1) { subtype = 2; A = 0.20175L; B = -0.86235L; }
    }
    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
    virtual int bifurcate(mdouble t, mdouble &a, mdouble &b) const;
+   virtual void getB(mdouble& a, mdouble&b);
 };
 
 class mndquartsiegel : public mndsiegel {
@@ -671,6 +674,7 @@ protected:
 public:
    mndcubic(int subtype0) : mndynamics(subtype0)
    {  A = -0.5L; bailout = 100.0L; rb = 0.0L; ib = 0.0L;
+      if (subtype ==10) return;
       if (subtype < 1 || subtype > 7) subtype = 1;
       if (subtype > 5) bailout = 1.0e10L;
    }
@@ -912,7 +916,10 @@ public:
       int q, qulonglong w, int n = 0);
    static int normalize(qulonglong &n, qulonglong &d, int &k);
    static void twice(qulonglong &n, qulonglong &d);
+   static void trice(qulonglong &n, qulonglong &d);
    static int conjugate(qulonglong &n, qulonglong &d);
+   static int conjugate3(qulonglong &n, qulonglong &d);
+   static int rotation3(qulonglong &n, qulonglong &d);
    static qulonglong wake(int k, int r, qulonglong &n);
    static mdouble radians(qulonglong n, qulonglong d);
 // static int realSpider(qulonglong n, qulonglong d, mdouble &c);
@@ -920,6 +927,7 @@ public:
    int setAngle(qulonglong n, qulonglong d, int &k);
    int getAngle(qulonglong &n, qulonglong &d)const { n = N; d = D; return P; }
    void twice() { twice(N, D); if (K) K--; }
+   void trice() { trice(N, D); if (K) K--; }
    mdouble radians() const { return radians(N, D); }
    static mdouble lambda(qulonglong N, qulonglong D,
       mdouble eps = 1.0e-8L, int nmax = 100);

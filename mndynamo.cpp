@@ -191,6 +191,11 @@ uint mndsiegel::pixcolor(mdouble x, mdouble y)
 
 ////////////////////////////////////////////////////////////////////
 
+void mndcubicsiegel::getB( mdouble &a, mdouble &b)
+{
+   a=L; b=M;
+}
+
 void mndcubicsiegel::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  if (subtype == 2) { f2(a, b, x, y); return; }
    mdouble u = x*x - y*y + a*x - b*y + L, v = 2*x*y + a*y + b*x + M,

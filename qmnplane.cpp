@@ -1122,11 +1122,51 @@ int QmnPlane::backRay(qulonglong num, qulonglong denom, mdouble &a, mdouble &b,
    delete p; /*delete[] Y; delete[] X;*/ update(); return 0;
 } //backRay
 
+int QmnPlane::newtonRayGeneralCubic(qulonglong N1, qulonglong N2, mdouble cr, mdouble ci, mdouble br, mdouble bi, int q)
+{   uint n; int j, i, k, i0, k0; mndAngle t; t.setAngle(N1, N2, j);
+    mdouble logR = 24.0, x, y, u;
+
+
+
+   u = exp(0.3333*logR); y = t.radians();
+   x = u*cos(y); y = u*sin(y);
+   if (pointToPos(x, y, i0, k0) > 1) i0 = -10;
+   stop(); QPainter *p = new QPainter(buffer); p->setPen(Qt::blue);
+   for (n = 1; n <= (nmax > 5000u ? 5000u : nmax + 2); n++)
+   {  t.trice();
+   for (j = 1; j <= q; j++)
+   {  if (rayNewtonGeneralCubic(n, cr, ci,br,bi, x, y,
+                     exp(-j*1.09861/q)*logR, t.radians()) )
+      { n = (n <= 20 ? 65020u : 65010u); break; }
+      if (pointToPos(x, y, i, k) > 1) i = -10;
+      if (i0 > -10)
+      {  if (i > -10) { p->drawLine(i0, k0, i, k); }
+         else { n = 65020u; break; }
+      }
+      i0 = i; k0 = k;
+   }
+   }
+   //if rayNewton fails after > 20 iterations, endpoint may be accepted
+   delete p; update(); if (n >= 65020u) return 2;
+
+   if (n >= 65010u) return 1; else return 0;
+   return 0;
+}
+
 //Time ~ nmax^2 , therefore limited  nmax .
+
 int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
    mdouble &a, mdouble &b, int q, QColor color, int mode) //5, white, 1
 {  uint n; int j, i, k, i0, k0; mndAngle t; t.setAngle(N, D, j);
    mdouble logR = 14.0, x, y, u;
+    color=Qt::blue;
+   if (signtype==10 || signtype==-10 || signtype==-11)
+   {  color=Qt::red;
+      return newtonRayC(signtype, N, D,
+                    a, b, q, Qt::red, mode);
+   }
+
+
    u = exp(0.5*logR); y = t.radians();
    x = u*cos(y); y = u*sin(y);
    if (pointToPos(x, y, i0, k0) > 1) i0 = -10;
@@ -1159,8 +1199,8 @@ int QmnPlane::rayNewton(int signtype, uint n, mdouble a, mdouble b,
    for (k = 1; k <= 60; k++)
    {  if (signtype > 0) { a = x; b = y; }
       fx = cos(ilog); fy = sin(ilog);
-      t0 = exp(rlog)*fx - 0.5*exp(-rlog)*(a*fx + b*fy);
-      t1 = exp(rlog)*fy + 0.5*exp(-rlog)*(a*fy - b*fx);
+      t0 = exp(rlog)*fx- 0.5*exp(-rlog)*(a*fx + b*fy);
+      t1 = exp(rlog)*fy+ 0.5*exp(-rlog)*(a*fy - b*fx);
       fx = x; fy = y; px = 1.0; py = 0.0;
       for (l = 1; l <= n; l++)
       {  u = 2.0*(fx*px - fy*py); py = 2.0*(fx*py + fy*px);
@@ -1175,6 +1215,127 @@ int QmnPlane::rayNewton(int signtype, uint n, mdouble a, mdouble b,
    }
    return 0;
 } //rayNewton
+
+
+int QmnPlane::newtonRayC(int signtype, qulonglong N, qulonglong D,
+                        mdouble &a, mdouble &b, int q, QColor color, int mode) //5, white, 1
+{  uint n; int j, i, k, i0, k0; mndAngle t; t.setAngle(N, D, j);
+   mdouble logR = 24.0, x, y, u;
+
+
+
+   u = exp(0.3333*logR); y = t.radians();
+   x = u*cos(y); y = u*sin(y);
+   if (pointToPos(x, y, i0, k0) > 1) i0 = -10;
+   stop(); QPainter *p = new QPainter(buffer); p->setPen(color);
+   for (n = 1; n <= (nmax > 5000u ? 5000u : nmax + 2); n++)
+   {  t.trice();
+      for (j = 1; j <= q; j++)
+      {  if (rayNewtonC(signtype, n, a, b, x, y,
+                                  exp(-j*1.09861/q)*logR, t.radians()) )
+         { n = (n <= 20 ? 65020u : 65010u); break; }
+         if (pointToPos(x, y, i, k) > 1) i = -10;
+         if (i0 > -10)
+         {  if (i > -10) { if (!(mode & 8)) p->drawLine(i0, k0, i, k); }
+         else { n = 65020u; break; }
+         }
+         i0 = i; k0 = k;
+      }
+   }
+   //if rayNewton fails after > 20 iterations, endpoint may be accepted
+   delete p; update(); if (n >= 65020u) return 2;
+   if (mode & 2) { a = x; b = y; }
+   if (n >= 65010u) return 1; else return 0;
+} //newtonRay
+
+
+int QmnPlane::rayNewtonGeneralCubic(uint n, mdouble cr, mdouble ci,
+                         mdouble br, mdouble bi, mdouble&x, mdouble& y, mdouble rlog, mdouble ilog)
+{  uint k, l; mdouble fx, fy, px, py, u, v = 0.0, d = 1.0 + x*x + y*y, t0, t1, dx,dy,t;
+
+
+
+
+   //symmetric cubic
+
+
+   fx = cos(ilog); fy = sin(ilog);
+   t0 = exp(rlog)*fx;//- 0.5*exp(-rlog)*(a*fx + b*fy);
+   t1 = exp(rlog)*fy;// + 0.5*exp(-rlog)*(a*fy - b*fx);
+
+
+   for (k = 1; k <= 60; k++)
+   {
+
+
+      fx = x; fy = y; px = 1.0; py = 0.0;
+      for (l = 1; l <= n; l++)
+      {
+         dx=3*(fx*fx-fy*fy)+2*cr*fx-2*ci*fy+br;
+         dy=6*(fx*fy)+2*ci*fx+2*cr*fy+bi;
+         u = px*dx - dy*py; py = dx*py + dy*px; //p - derivative, f - iteration
+         px = u;
+
+         u = fx*fx; v = fy*fy; dy = 2.0*fx*fy +ci*fx+cr*fy+bi; dx = u - v + cr*fx-ci*fy+br;
+         t=fx*dx-fy*dy; fy=fx*dy+fy*dx; fx=t;
+         u += v; v = px*px + py*py; if (u + v > 1.0e100) return 1;
+      }
+      if (v < 1.0e-50) return 2;
+      fx -= t0; fy -= t1;
+      u = (fx*px + fy*py)/v; v = (fx*py - fy*px)/v;
+      px = u*u + v*v; if (px > 9.0*d) return -1;
+      x -= u; y += v; d = px; if (px < 1.0e-28 && k >= 5) break;
+   }
+   return 0;
+} //rayNewtonGeneralCubic
+
+int QmnPlane::rayNewtonC(int signtype, uint n, mdouble a, mdouble b,
+                        mdouble &x, mdouble &y, mdouble rlog, mdouble ilog)
+{  uint k, l; mdouble fx, fy, px, py, u, v = 0.0, d = 1.0 + x*x + y*y, t0, t1, lambdar, lambdai, dx,dy,t;
+
+
+
+
+   //symmetric cubic
+
+   lambdar= 3*(a*a-b*b);
+   lambdai= 6*a*b;
+   fx = cos(ilog); fy = sin(ilog);
+   t0 = exp(rlog)*fx;//- 0.5*exp(-rlog)*(a*fx + b*fy);
+   t1 = exp(rlog)*fy;// + 0.5*exp(-rlog)*(a*fy - b*fx);
+   if (signtype > 0) {t0/=-1.2599;t1/=-1.2599;}
+
+   for (k = 1; k <= 60; k++)
+   {  if (signtype > 0) { a = x; b = y;      lambdar= 3*(a*a-b*b);
+         lambdai= 6*a*b;
+          }
+
+
+      fx = x; fy = y; px = 1.0; py = 0.0;
+      for (l = 1; l <= n; l++)
+      {
+         dx=3*(fx*fx-fy*fy)-lambdar;
+         dy=6*(fx*fy)-lambdai;
+         u = px*dx - dy*py; py = dx*py + dy*px; //p - derivative, f - iteration
+         px = u;
+
+         if (signtype > 0) {px-=6*(a*fx-b*fy);py-=6*(a*fy+b*fx);};
+
+         u = fx*fx; v = fy*fy; dy = 2.0*fx*fy -lambdai; dx = u - v - lambdar;
+         t=fx*dx-fy*dy; fy=fx*dy+fy*dx; fx=t;
+         u += v; v = px*px + py*py; if (u + v > 1.0e100) return 1;
+      }
+      if (v < 1.0e-50) return 2;
+      fx -= t0; fy -= t1;
+      u = (fx*px + fy*py)/v; v = (fx*py - fy*px)/v;
+      px = u*u + v*v; if (px > 9.0*d) return -1;
+      x -= u; y += v; d = px; if (px < 1.0e-28 && k >= 5) break;
+   }
+   return 0;
+} //rayNewton
+
+
+
 
 int QmnPlane::tricornNewton(int signtype, uint n, mdouble a, mdouble b,
    mdouble &x, mdouble &y, mdouble rlog, mdouble ilog)

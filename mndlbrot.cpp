@@ -864,13 +864,31 @@ void mndbfpoly::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 
 //////////////////////////////////////////////////////////////////////
 
-void mndcubic::critical(mdouble, mdouble, mdouble &x, mdouble &y) const
+void mndcubic::critical(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  x = 1.0; y = 0;
    if (subtype == 1 && rb*rb + ib*ib > 0 && (maxiter & 1) ) x = -1.0;
+   if (subtype == 10) {x=a; y=b;}
 }
 
 void mndcubic::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
-{  if (subtype == 6) { frabbit(a, b, x, y); return; }
+
+{
+    if (subtype == 10)
+    {
+      mdouble a1, b1, u,v,w;
+      a1= 3*a*a-3*b*b;
+      b1=6*a*b;
+      //a=a1;
+      //b=b1;
+      u = x*x - y*y - a1; v = 2*x*y-b1;
+      w = x*u - y*v; y = x*v + y*u; x = w;
+      return;
+    }
+
+
+
+
+   if (subtype == 6) { frabbit(a, b, x, y); return; }
    if (subtype == 5 || subtype == 7) { fbasilica(a, b, x, y); return; }
    mdouble u, v, w; u = x*x - y*y - 3; v = 2*x*y;
    w = x*u - y*v; y = x*v + y*u; x = w; if (subtype > 1) x -= 2; //odd
@@ -975,8 +993,34 @@ uint mndcubic::pixcolor(mdouble x, mdouble y)
 
 uint mndcubic::marty(mdouble a, mdouble b, mdouble x, mdouble y)
 {  uint j; mdouble xp = (sign > 0 ? 0 : 1.0), yp = 0, u, v, w;
+
+   //sym cubic
+
+ /*  if (subtype == 10)
+   {
+      mdouble a1, b1;
+      a1= 3*a*a-3*b*b;
+      b1=6*a*b;
+      a=a1;
+      b=b1;
+   }*/
+
+
+
    for (j = 1; j <= maxiter; j++)
-   {  u = x*x - y*y - 3; v = 2*x*y;
+   {
+      /*if (subtype==10)
+      {
+         u = x*x - y*y - a; v = 2*x*y-b;
+          w = x*u - y*v; y = x*v + y*u; x = w;
+
+
+      }
+      else
+      */
+      {u = x*x - y*y - 3; v = 2*x*y;
+
+
       w = x*u - y*v; y = x*v + y*u; x = w; if (subtype > 1) x -= 2;
       w = u + 2; u = 3*(a*w - b*v); v = 3*(a*v + b*w);
       w = u*xp - v*yp; yp = u*yp + v*xp; xp = w;
@@ -986,9 +1030,10 @@ uint mndcubic::marty(mdouble a, mdouble b, mdouble x, mdouble y)
       if (subtype == 2) x++; //
       if (subtype == 3) x -= 2; //
       if (subtype == 4) x--; //
+
       u = xp*xp + yp*yp; v = x*x + y*y + 1;
       if (u > 1e60 || v > 1e3) return 0;
-      if (temp[1]*u > 2.25*v*v) return 4;
+      if (temp[1]*u > 2.25*v*v) return 4;}
    }
    return (v > bailout ? 0 : 12);
 }
