@@ -1,8 +1,8 @@
-/* qmndemos.cpp  by Wolf Jung (C) 2007-2019.  Defines classes:
+/* qmndemos.cpp  by Wolf Jung (C) 2007-2023.  Defines classes:
    QmnDemo, QmnDemoDS, QmnDemoPB, QmnDemoER, QmnDemoCC,
    QmnDemoRN, QmnDemoAS, QmnDemoLS, QmnDemoQC, QmnDemoCZ.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -4230,7 +4230,7 @@ if (page == 7)
  "examples as on page 2, at 14 small Mandelbrot sets with 3 different "
  "zoom levels each, with the Mandelbrot set (red) drawn on top of the "
  "rescaled Julia set (blue) to compare them.</i><br>"
- "In the main program, hit the key Ctrl+F8 to see the rescaled Julia set as "
+ "In the main program, hit the key Shift+F8 to see the rescaled Julia set as "
  "a background image in the parameter plane."));
    pplane->setNmax(500); dplane->setNmax(5000);
    pplane->setPlane(-0.75, 0, 1.25, 0); pplane->draw(pf, 1, &mode); go();

@@ -1,7 +1,7 @@
-/* qmndialg.cpp  by Wolf Jung (C) 2007-2019.  Defines classes:
+/* qmndialg.cpp  by Wolf Jung (C) 2007-2023.  Defines classes:
    QmnHelp, QmnUIntDialog, QmnDoubleDialog, QmnCombiDialog, QmnRayDialog.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -216,7 +216,7 @@ QmnHelp::QmnHelp(QWidget *parent) : QDialog(parent)
  "decorations of the small Mandelbrot set are close to the decorations "
  "of the small Julia set after an affine rescaling. Hit the key p to " 
  "see the corresponding part of the Julia set in the right window, or "
- "Ctrl+F8 to see it as a background image in the left one. When you "
+ "Shift+F8 to see it as a background image in the left one. When you "
  "specify a preperiod, the dynamic plane will be rescaled according "
  "to asymptotic similarity at a Misiurewicz point."
  "<p>"
@@ -262,7 +262,7 @@ QmnHelp::QmnHelp(QWidget *parent) : QDialog(parent)
    p6->setReadOnly(true); tabs->addTab(p6, tr("&Function"));
 
    QTextEdit *p7 = new QTextEdit(this); p7->setHtml(tr(
- "Hit F6 or Ctrl+F6 to save the current image as a small EPS file "
+ "Hit F6 or Shift+F6 to save the current image as a small EPS file "
  "(Encapsulated "
  "PostScript). It can be included in documents produced with LaTeX and "
  "dvips. You may convert it to a single-page PDF file using epstopdf, e.g., "
@@ -274,7 +274,7 @@ QmnHelp::QmnHelp(QWidget *parent) : QDialog(parent)
  "<p>"
  "With the key F7, you can save the image in the format PNG, which is "
  "recommended for inclusion in HTML documents on the www, or in ODT files. "
- "Use Ctrl+F7 to save both planes together in one image. "
+ "Use Shift+F7 to save both planes together in one image. "
  "PNG images can be loaded with F8. A serious application may be to draw "
  "puzzle pieces: save an image, use an external drawing program to erase "
  "parts of the external rays and equipotential lines, reload the image, "
@@ -284,13 +284,14 @@ QmnHelp::QmnHelp(QWidget *parent) : QDialog(parent)
  "Convert them to a video with the following shell command:<br>"
  "ffmpeg -start_number 1001 -i %04d.png -c:v libx264"
  " -pix_fmt yuv420p out.mp4<br>"
- "You can add initial images, start later, or delete later images as well."
+ "You can add initial images, start later, or delete later images as well.<br>"
+ "Use Shift+F9 for video frame tools and a few built-in animations."
  "<p>"
  "When you create a frame, F5, F6 and F7 work on the region specified by the "
  "frame. To print an image, please save it and use an external program. "
  "Setting a path with the mouse is turned on or off in the context menu. "
  "The path is cleared with Esc and drawn permanently with #. Use a and b "
- "for its preimages. Hit F10 or Ctrl+F10 to transform the image according "
+ "for its preimages. Hit F10 or Shift+F10 to transform the image according "
  "to the Arnold cat map."));
    p7->setReadOnly(true); tabs->addTab(p7, tr("&Image"));
 

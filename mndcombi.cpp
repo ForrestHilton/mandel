@@ -1,8 +1,8 @@
-/* mndcombi.cpp  by Wolf Jung (C) 2007-2019.  Defines classes:
+/* mndcombi.cpp  by Wolf Jung (C) 2007-2023.  Defines classes:
    mndAngle, mndCombi, mandelPath, mandelPathTwo, mandelPathThree,
    mandelbrotPath, mandelPathExpo.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is

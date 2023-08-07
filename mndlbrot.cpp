@@ -1,8 +1,8 @@
-/* mndlbrot.cpp  by Wolf Jung (C) 2007-2019.  Defines classes:
+/* mndlbrot.cpp  by Wolf Jung (C) 2007-2023.  Defines classes:
    mndlbrot, mndmulti, mndbfpoly, mndcubic, mndquartic, mndsurge,
    mndrealcubic, mndtricorn, mndhenon, mndifs, mndlambda, mndScale.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -120,6 +120,22 @@ void mndlbrot::prepare(int sg, uint nmax, uint &dm, mdouble *t)
    //{  mdouble u = 0.001*maxiter; maxiter = 500; temp[1] = (*t)*u*u; }
    if (drawmode == 6)
    { *temp = 2.5/sqrt(*t); if (*temp < 600.0) *temp = 600.0; }
+   /*/Thurston eigenvalues at real centers
+   if (sign < 0)
+   {  mdouble X = A, Y = B; Period = period(X, Y, 1);
+      if (Period < 3 || Period > 63) { subtype = 1000; return; }
+      temp[2] = 1.0L/A; mdouble U = A; uint J; subtype = Period;
+      for (J = 3; J <= subtype; J++)
+      { U = U*U + A; temp[J] = temp[J-1]/U; }
+   }//*/
+   /*/Thurston eigenvalues at real 41/96
+   if (sign < 0)
+   {  subtype = 6; A = -1.697555393237548L; mdouble U = A, t[6]; uint J;
+      t[1] = 1.0L/A; for (J = 2; J <= 5; J++) { U = U*U + A; t[J] = 1.0L/U; }
+      temp[2] = t[1]+t[5]; temp[3] = t[1]*(t[2] + t[5]);
+      temp[4] = t[1]*t[2]*(t[3] + t[5]); temp[5] = t[1]*t[2]*t[3]*(t[4] + t[5]);
+      temp[6] = t[1]*t[2]*t[3]*t[4]*t[5]*2.0L;
+   }//*/
 }
 
 uint mndlbrot::parabolic(mdouble x, mdouble y)
@@ -213,7 +229,25 @@ uint mndlbrot::esctime(mdouble x, mdouble y)
 }
 
 uint mndlbrot::pixcolor(mdouble x, mdouble y)
-{  /*/test spider path preperiodic as pullback of disk
+{  /*/Thurston eigenvalues at real centers
+   if (sign < 0 && subtype <= 63)
+   {  mdouble U = 1.0L, V = 0.0L, W; uint J;
+      for (J = 2; J <= subtype; J++)
+      { W = x*U - y*V; V = x*V  +y*U; U = W + temp[J]; }
+      if (U > 0.0L) return (V > 0.0L ? 9 : 12);
+      return (V > 0.0L ? 10 : 11);
+   }//*/
+   /*/IMG for dyadic rays of Basilica
+   if (sign < 0)
+   {  mdouble U; uint J;
+      for (J = 1; J <= maxiter; J++)
+      {  if (x*x + y*y >= 4.0L)
+         { if (y >= 0.0L && x*x + y*y <= 6.0L + x) return 12; else return 9; }
+         U = x*x - y*y; y *= 2.0L*x; x = U + A;
+      }
+      return 0;
+   }//*/
+   /*/test spider path preperiodic as pullback of disk
    mdouble h = 0.02L, u = 2.0L*PI*1.0L/4.0L, v, c = cos(u), s = sin(u);
    for (uint n = 1; n <= maxiter; n++)
    {  u = x*x; v = y*y; if (u + v > 100.0L) return 10;
@@ -1025,13 +1059,20 @@ void mndquartic::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
       u = ((a - 1)*X + b*Y)/w; v = (b*X + (1 - a)*Y)/w;
       w = u*x - v*y + a; y = u*y + v*x + b; x = w; return;
    }
+   /*/iterated Chebyshev, set critical = 0
+   mdouble w; u -= 2.0L;
+   for (int i = 2; i <= subtype; i++)
+   {  w = u*u - v*v; v *= 2.0L*u; u = w - 2.0L;
+      if (u*u + v*v > 1e10) { x = 1e100; return; }
+   }
+   x = a*u - b*v; y = a*v + b*u; //*/
    mdouble w;
    for (int i = 2; i < subtype; i++)
    {  w = x*u - y*v; v = x*v + y*u; u = w;
       if (u*u + v*v > 1e10) { x = 1e100; return; }
    }
    u -= subtype*x; v -= subtype*y;
-   x = a*u - b*v; y = a*v + b*u;
+   x = a*u - b*v; y = a*v + b*u; //*/
 }
 //...: c(z^q - qz)
 //2000: (z^2 + c)^2

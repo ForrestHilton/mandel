@@ -1,7 +1,7 @@
-/* qmnplane.cpp by Wolf Jung (C) 2007-2019.
+/* qmnplane.cpp by Wolf Jung (C) 2007-2023.
    Defines classes QmnPlane, QmnDraw.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -582,6 +582,7 @@ void QmnPlane::move(int mode, int u, int v) // = 0, 0
    if ((mode == 7 || mode == 8 || mode > 11) && ypath[0] > 2)
    {  QPainter *p = new QPainter(buffer); p->setPen(Qt::white);
       int m, i1, k1, i2, k2; i1 = xpath[1]; k1 = ypath[1];
+      //for (m = xpath[0]; m <= xpath[0]; m++) //straight
       for (m = 2; m <= xpath[0]; m++)
       {  i2 = xpath[m]; k2 = ypath[m];
          p->drawLine(i1, k1, i2, k2); i1 = i2; k1 = k2;
@@ -1142,7 +1143,7 @@ int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
          if (pointToPos(x, y, i, k) > 1) i = -10;
          if (i0 > -10)
          {  if (i > -10) { if (!(mode & 8)) p->drawLine(i0, k0, i, k); }
-            else { n = 65020u; break; }
+            else if (!mode & 2) { n = 65020u; break; }
          }
          i0 = i; k0 = k;
       }
@@ -1326,21 +1327,17 @@ bool QmnPlane::savePNG(const QString &fileName, QmnPlane *plane, int mark)// =00
 {  //Save the whole buffer,  or the content of the frame,  as a PNG-file.
    //Or save together with plane,  not checking the latter's size.
    stop(); QImage *pix = buffer;
-   /*if (plane)
+   if (mark && !plane) //four pics
    {  QPainter *p = new QPainter(buffer); int i = 0, k = 0;
-      if (mark & 1) i = 400; if (mark & 2) k = 400;
-      pix = new QImage();
-      pix->load(fileName, "PNG");
-      p->drawImage(i, k, *pix, 0, 0, 400, 400);
-      if (mark == 3)
-      {  p->setPen(Qt::darkGray);
-	 p->drawLine(399, 0, 399, 799);
-	 p->drawLine(400, 0, 400, 799);
-	 p->drawLine(0, 399, 799, 399);
-	 p->drawLine(0, 400, 799, 400);
-      }
-      delete p; delete pix; return true;
-   }//*/
+      if (mark == 1 || mark == 4) i = imax; if (mark > 2) k = kmax;
+      pix = new QImage(); pix->load(fileName, "PNG");
+      p->drawImage(i, k, *pix, 0, 0, imax, kmax); p->setPen(Qt::darkGray);
+      p->drawLine(imax-1, 0, imax-1, 2*kmax-1);
+      p->drawLine(imax, 0, imax, 2*kmax-1);
+      p->drawLine(0, kmax-1, 2*imax-1, kmax-1);
+      p->drawLine(0, kmax, 2*imax-1, kmax);
+      delete pix; delete p; return true;
+   }
    if (plane)
    {  pix = new QImage(4*imax + 32, 2*kmax, QImage::Format_RGB32);
       plane->stop(); QPainter *p = new QPainter(pix); int i, k;
@@ -1359,7 +1356,7 @@ bool QmnPlane::savePNG(const QString &fileName, QmnPlane *plane, int mark)// =00
 	 p->drawLine(2*imax + 32 + i, k - 4, 2*imax + 32 + i, k + 4);
       }
       delete p;
-   }//*/
+   }
    else if (hframe > 0)
    {  int i, k; pointToPos(x, y, i, k);
       pix = new QImage(8*hframe, 8*vframe, QImage::Format_RGB32);
@@ -1371,21 +1368,6 @@ bool QmnPlane::savePNG(const QString &fileName, QmnPlane *plane, int mark)// =00
    if (hframe > 0 || plane) delete pix;
    return ok;
 }
-
-/*bool QmnPlane::loadPNG(const QString &fileName)
-{  //Loads a PNG-file into the buffer,  hoping the sizes agree.
-   stop(); QImageReader reader(fileName);
-   reader.read(buffer); return true;
-}//*/
-
-/*bool QmnPlane::loadPNG(const QString &fileName)
-{  //Loads a PNG-file into the buffer,  hoping the sizes agree.
-   stop(); QImage *newbuffer = new QImage(2*imax,2*kmax,QImage::Format_RGB32);
-   QImageReader reader(fileName);
-   if (reader.read(newbuffer))
-   { delete buffer; buffer = newbuffer; update(); return true; }
-   delete newbuffer; return false;
-}//*/
 
 bool QmnPlane::loadPNG(const QString &fileName)
 {  //Loads a PNG-file into the buffer if the sizes agree.
@@ -1468,6 +1450,11 @@ void QmnPlane::tilt(int mode) //1 color shows height, 0 uniform
    delete[] r; update();
 }
 
+/*QRgb QmnPlane::getRGB(mdouble x0, mdouble y0)
+{  int i, k; if (pointToPos(x0, y0, i, k)) return 0u;
+   return buffer->pixel(i, k) & 0xffffff;
+}//*/
+
 void QmnPlane::replaceColor(int p, int q)
 {  if (isRunning()) stop(); int i, i1 = 0, i2 = 2*imax, k, k1 = 0, k2 = 2*kmax;
    if (hframe > 0)
@@ -1480,6 +1467,7 @@ void QmnPlane::replaceColor(int p, int q)
       Qt::darkGray, Qt::blue, Qt::green, Qt::cyan, Qt::red, Qt::magenta,
       Qt::yellow, Qt::white}; //is VGA
    rgb1 = mycolor[p].rgb() & 0xffffff; rgb2 = mycolor[q].rgb() & 0xffffff;
+   //rgb1 = 0xd0ffd0; rgb2 = 0xc8c8ff;
    for (k = k1; k < k2; k++) for (i = i1; i < i2; i++)
    {  rgb = buffer->pixel(i, k) & 0xffffff; //truncate argb
       if (rgb == rgb1) buffer->setPixel(i, k, rgb2);
@@ -1492,6 +1480,9 @@ void QmnPlane::overlay(QmnPlane *plane, QColor *color) // = 0
 {  if (isRunning() || plane->isRunning()) return; int i, k; QRgb cl;
    /*for (k = 1; k < 2*kmax; k++) for (i = 0; i < 2*imax; i++)
    { cl = plane->buffer->pixel(i, k); buffer->setPixel(i, 2*kmax-k, cl); }
+   update(); return;//*/
+   /*for (k = 1; k < kmax; k++) for (i = 0; i < 2*imax; i++)
+   { cl = buffer->pixel(i, k); buffer->setPixel(i, 2*kmax-k, cl); }
    update(); return;//*/
    if (color)
    {  cl = color->rgb();
@@ -1509,6 +1500,18 @@ void QmnPlane::overlay(QmnPlane *plane, QColor *color) // = 0
          buffer->setPixel(i, k, cl);
       }
    }
+   update();
+}
+
+void QmnPlane::Overlay(QmnPlane *plane)
+{  if (isRunning() || plane->isRunning()) return; int i, k; QRgb cl;
+   for (k = 0; k < 2*kmax; k++) for (i = 0; i < 2*imax; i++)
+      if ((plane->buffer->pixel(i, k) & 0xffffff) == 0xff0000)
+      {  cl = buffer->pixel(i, k) & 0xffffff;
+         if (cl == 0xff00ff) continue;
+         if (cl == 0xff0000) cl = 0xff00ff; else cl = 0x0000ff;
+         buffer->setPixel(i, k, cl);
+      }
    update();
 }
 

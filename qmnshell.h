@@ -1,4 +1,4 @@
-/* qmnshell.h  by Wolf Jung (C) 2007-2019.
+/* qmnshell.h  by Wolf Jung (C) 2007-2023.
    Defines icons and declares classes:
    [defined in qmnshell.cpp :] QmnShell
    [defined in qmndialg.cpp :] QmnHelp, QmnUIntDialog, QmnDoubleDialog,
@@ -6,7 +6,7 @@
    [defined in qmndemos.cpp :] QmnDemo, QmnDemoDS, QmnDemoPB, QmnDemoER,
    QmnDemoCC, QmnDemoRN, QmnDemoAS, QmnDemoLS, QmnDemoQC, QmnDemoCZ.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -20,7 +20,6 @@
 #include <QDialog>
 #include <QTabWidget>
 #include <QUrl>
-//#include "mndynamo.h"
 #include "qmnplane.h"
 
 class QChar;
@@ -119,6 +118,7 @@ protected:
       *newMenu,
       *helpMenu,
       *epsMenu,
+      *vidMenu,
       *algoMenu,
       *chooseMenu,
       *levelMenu,
@@ -136,11 +136,22 @@ protected:
       *epsActs[4],
       *epsSaveAct,
       *epsMenuAct,
+      *vidAct1,
+      *vidAct2,
+      *vidAct3,
+      *vidAct4,
+      *vidAct5,
+      *veinAct2,
+      *veinAct3,
+      *limbAct2,
+      *limbAct3,
+      *limbAct4,
       *pngSaveAct,
       *bothSaveAct,
       *pngLoadAct,
       *overlayAct,
       *videoAct,
+      *vidMenuAct,
       *catmapAct,
       *catinvAct,
       *exitAct,

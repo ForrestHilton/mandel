@@ -1,4 +1,4 @@
-Mandel 5.17 of July 22, 2019. Copyright (C) 2007-2019 Wolf Jung.
+Mandel 5.18 of May 28, 2023. Copyright (C) 2007-2023 Wolf Jung.
 jung@mndynamics.com   www.mndynamics.com
 
 This program is free software;  you can redistribute it and / or
@@ -18,23 +18,23 @@ Mandel is distributed from  www.mndynamics.com  in two ways:
 
 A) Compilation from the source code (Linux,  Windows,  Mac):
 
-   0) Download a free edition of  Qt  4.x  or  5.x  for Linux,  Windows,
+   0) Download a free edition of  Qt  4.x  --  5.x  for Linux,  Windows,
    or Mac from  http://www.qt.io/download-open-source/ . Linux users with KDE 4
    will have it already.  Use the binary installer or the online installer.
    Or unpack the source code and follow the instructions in the file INSTALL.
 
-   1) Download  www.mndynamics.com/mandel0517src.zip  and unzip it to
+   1) Download  www.mndynamics.com/mandel0518src.zip  and unzip it to
    a directory,  e.g.,  "mandel" .  You will have the following files:
-   readme0517.txt                               (this file)
+   readme0518.txt                               (this file)
    copying.txt                                  (the GNU GPL v. 3)
    mandel.pro                                   (Qt project file)
    mndynamo.h  mndynamo.cpp  mndlbrot.cpp  mndcombi.cpp
    qmnplane.h  qmnplane.cpp
    qmnshell.h  qmnshell.cpp  qmndemos.cpp  qmndialg.cpp
    qmnicons.rc qmnicon32.ico                    (Windows icon)
-   mandel_de.ts   mandel_pl.ts   mandel_pt.ts   (translation source)
-   mandel_de.qm   mandel_pl.qm   mandel_pt.qm   (translation binary)
-   qt_de.qm       qt_pl.qm       qt_pt.qm       (translation binary)
+//   mandel_de.ts   mandel_pl.ts   mandel_pt.ts   (translation source)
+//   mandel_de.qm   mandel_pl.qm   mandel_pt.qm   (translation binary)
+//   qt_de.qm       qt_pl.qm       qt_pt.qm       (translation binary)
 
    2a) In a shell,  create the Makefile with  "qmake" , then use  "make" .
    For MinGW on Windows,  move  *.qm  to the directory  mandel\release .
@@ -51,13 +51,13 @@ A) Compilation from the source code (Linux,  Windows,  Mac):
 
 B) Installation of the binary distribution (Windows):
 
-   1) Download  www.mndynamics.com/mandel0517win.zip  and unzip it to
+   1) Download  www.mndynamics.com/mandel0518win.zip  and unzip it to
    a directory, e.g.,  "mandel" .  You will have the following files:
-   readme0517.txt                               (this file)
+   readme0518.txt                               (this file)
    copying.txt                                  (the GNU GPL v. 3)
    mandel.exe                                   (the executable)
-   mandel_de.qm   mandel_pl.qm   mandel_pt.qm   (translation binary)
-   qt_de.qm       qt_pl.qm       qt_pt.qm       (translation binary)
+//   mandel_de.qm   mandel_pl.qm   mandel_pt.qm   (translation binary)
+//   qt_de.qm       qt_pl.qm       qt_pt.qm       (translation binary)
    QtCore4.dll    QtGui4.dll                (dynamic link libraries)
    mingwm10.dll   libgcc_s_dw2-1.dll        (dynamic link libraries)
 
@@ -109,6 +109,7 @@ Known bugs:
   compensated by multiplying  temp[1] = pw  with  (1 + |z|^2)^2 / 4 .
 * The stripping algorithm does not work for
    1-3-6-7-10-11-14-15-18-19-22-23-26-27-30-31-34-35-39
+* Translations are heavily outdated.
 
 Plans for Mandel 6:
 * Better documentation.
@@ -119,8 +120,7 @@ Plans for Mandel 6:
 * New sleeping thread,  including multi-pass drawing without background erasing
   and permanent rays / equipotentials.  Rewrite  green().
 * Remove comparison,  smooth coloring,  combine distance estimate and Marty.
-  Sphere reports adapted pixel size. But maybe comparison is needed for
-  renormalization and transcendental functions.
+  Sphere reports adapted pixel size.
   Add drawmode 10, 11 in the dynamics,  and drawmodes 4, 5 in mndmulti.
 * Background 0 white,  rays and spiders black,  Thurston path red / magenta.
 * Rays,  finding,  and ^q for standard slice in more families.
@@ -131,7 +131,7 @@ Plans for Mandel 6:
   be mapped and doubled before pulling it back.  Circular path is specified.
   Mouse-drawn frame is independent of cursor position.  Cursor 9 x 9 or more.
   Context menu only for mouse properties and drawing.
-* Filling,  movable color eraser,  magnified pixels,  maybe blinking cursor.
+* Filling,  maybe magnified pixels,  maybe blinking cursor.
 * Improved animations.
 * Free resizing.
 * Make functions in  mndsurge  continuous,  add Newton with Siegel cycle.
@@ -143,12 +143,17 @@ Plans for Mandel 6:
 * Add Hubbard trees,  inverse spider,  and Lavaurs' algorithm.
 * Rewrite demos,  maybe with scripting and glossary.
 
-Major changes in version 5.18 of ..., 2020:
+Major changes in version 5.19 of ..., 2023:
 * Mating of arbitrary quadratic polynomials.
 * Update translations and documentation.
 * Re-activate Thurston for quadratic polynomials,  remove examples.
 * Implemented more rational families,  mating,  and captures by path.
 * Split commands Q and Ctrl+Q.
+
+Major changes in version 5.18 of May 28, 2023:
+* Added utilities for video frames and scripts for veins and limbs.
+* Changed shortcuts to SHIFT+F*.
+* Enabled instant mating for a few families.
 
 Major changes in version 5.17 of July 22, 2019:
 * Changed colors of mating once again.

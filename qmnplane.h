@@ -1,7 +1,7 @@
-/* qmnplane.h by Wolf Jung (C) 2007-2019.
+/* qmnplane.h by Wolf Jung (C) 2007-2023.
    Declares classes QmnPlane, QmnDraw.
 
-   These classes are part of Mandel 5.17, which is free software; you can
+   These classes are part of Mandel 5.18, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -152,12 +152,14 @@ public:
      mdouble &x, mdouble &y, mdouble rlog, mdouble ilog);
    bool saveEPS(int bpp, const QString &fileName);
    bool saveTXT(const QString &fileName);
-   bool savePNG(const QString &fileName, QmnPlane *plane = 0, int mark = 0);
+   bool savePNG(const QString &fileName, QmnPlane *plane = 0, int mode = 0);
    bool loadPNG(const QString &fileName);
    void catMap(int mode);
    void tilt(int mode);
+   //QRgb getRGB(mdouble x0, mdouble y0);
    void replaceColor(int p, int q);
    void overlay(QmnPlane *plane, QColor *color = 0);
+   void Overlay(QmnPlane *plane);
    void stop();
    bool isRunning() const;
 public slots:
