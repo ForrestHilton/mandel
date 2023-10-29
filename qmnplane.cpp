@@ -1125,7 +1125,7 @@ int QmnPlane::backRay(qulonglong num, qulonglong denom, mdouble &a, mdouble &b,
 
 //Time ~ nmax^2 , therefore limited  nmax .
 int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
-   mdouble &a, mdouble &b, int q, QColor color, int mode) //5, white, 1
+   mdouble &re_c, mdouble &im_c, int quality, QColor color, int mode) //5, white, 1
 {  uint n; int j, i, k, i0, k0; mndAngle t; t.setAngle(N, D, j);
    mdouble logR = 14.0, x, y, u;
    u = exp(0.5*logR); y = t.radians();
@@ -1134,11 +1134,11 @@ int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
    stop(); QPainter *p = new QPainter(buffer); p->setPen(color);
    for (n = 1; n <= (nmax > 5000u ? 5000u : nmax + 2); n++)
    {  t.twice();
-      for (j = 1; j <= q; j++)
-      {  if (mode & 4 ? tricornNewton(signtype, n, a, b, x, y,
-                exp(-j*0.69315/q)*logR, t.radians())
-           : rayNewton(signtype, n, a, b, x, y,
-                exp(-j*0.69315/q)*logR, t.radians()) )
+      for (j = 1; j <= quality; j++)
+      {  if (mode & 4 ? tricornNewton(signtype, n, re_c, im_c, x, y,
+                exp(-j*0.69315/quality)*logR, t.radians())
+           : rayNewton(signtype, n, re_c, im_c, x, y,
+                exp(-j*0.69315/quality)*logR, t.radians()) )
          { n = (n <= 20 ? 65020u : 65010u); break; }
          if (pointToPos(x, y, i, k) > 1) i = -10;
          if (i0 > -10)
@@ -1150,23 +1150,23 @@ int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
    }
    //if rayNewton fails after > 20 iterations, endpoint may be accepted
    delete p; update(); if (n >= 65020u) return 2;
-   if (mode & 2) { a = x; b = y; }
+   if (mode & 2) { re_c = x; im_c = y; }
    if (n >= 65010u) return 1; else return 0;
 } //newtonRay
 
-int QmnPlane::rayNewton(int signtype, uint n, mdouble a, mdouble b,
+int QmnPlane::rayNewton(int signtype, uint n, mdouble re_c, mdouble im_c,
    mdouble &x, mdouble &y, mdouble rlog, mdouble ilog)
 {  uint k, l; mdouble fx, fy, px, py, u, v = 0.0, d = 1.0 + x*x + y*y, t0, t1;
    for (k = 1; k <= 60; k++)
-   {  if (signtype > 0) { a = x; b = y; }
+   {  if (signtype > 0) { re_c = x; im_c = y; }
       fx = cos(ilog); fy = sin(ilog);
-      t0 = exp(rlog)*fx - 0.5*exp(-rlog)*(a*fx + b*fy);
-      t1 = exp(rlog)*fy + 0.5*exp(-rlog)*(a*fy - b*fx);
+      t0 = exp(rlog)*fx - 0.5*exp(-rlog)*(re_c*fx + im_c*fy);
+      t1 = exp(rlog)*fy + 0.5*exp(-rlog)*(re_c*fy - im_c*fx);
       fx = x; fy = y; px = 1.0; py = 0.0;
       for (l = 1; l <= n; l++)
       {  u = 2.0*(fx*px - fy*py); py = 2.0*(fx*py + fy*px);
          px = u; if (signtype > 0) px++;
-         u = fx*fx; v = fy*fy; fy = 2.0*fx*fy + b; fx = u - v + a;
+         u = fx*fx; v = fy*fy; fy = 2.0*fx*fy + im_c; fx = u - v + re_c;
          u += v; v = px*px + py*py; if (u + v > 1.0e100) return 1;
       }
       fx -= t0; fy -= t1; if (v < 1.0e-50) return 2;
