@@ -1,6 +1,6 @@
 /* qmnshell.cpp  by Wolf Jung (C) 2007-2023.  Defines class QmnShell.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -35,13 +35,101 @@
 #define USING_QmnIcon_xpm16
 #define USING_QmnIcon_xpm64
 #include "qmnshell.h"
-//define the following to save frames for mating loci vids
-//#define SaveFramesOfVeinsLimbs
 //undefine the following to speed up computation of initial images
 //#define SaveFramesOfVeinsLimbsX
 
 const mdouble cFb = -1.40115518909205060052L, dFb = 4.66920160910299067185L,
    aFb = 2.50290787509589282228L;  //Fibonacci -1.8705286321646448888906L
+
+void QmnShell::help(QAction *act)
+{  if (act == helpAct) { helptabs->show(); helptabs->raise(); }
+   if (act == aboutAct)
+   {  QMessageBox mb(QMessageBox::NoIcon, trUtf8("About Mandel"), trUtf8(
+      "<style type=\"text/css\">a:link { text-decoration: none; }</style>"
+      "<b>Mandel 5.19</b> of October 15, 2023.<br>"
+      "Copyright &copy; Wolf Jung"
+      "<p>This program comes with no warranty.<br>"
+      "It may be redistributed and modified under<br>"
+      "the terms of the <a href=\"http://www.gnu.org/copyleft/gpl.html\">"
+      "GNU General Public Licence</a>."
+      "<p>The latest version and the source code are<br>"
+      "available from "
+      "<a href=\"http://www.mndynamics.com\">www.mndynamics.com</a> ."
+      "<p>This program employs the cross-platform C++<br>"
+      "toolkit Qt from Qt Group. See "
+      "<a href=\"http://www.qt.io/download-open-source/\">"
+      "www.qt.io/download-open-source/</a> ."),
+      QMessageBox::Ok, this);
+      mb.setIconPixmap(QPixmap((const char **)(QmnIcon_xpm64)));
+      mb.exec();
+   }
+   if (act == demoActs[0]) //see updateActions and F1
+   {  QmnDemo *demo = new QmnDemoDS(trUtf8(
+      "Mandel demo 0: real iteration"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[1])
+   {  QmnDemo *demo = new QmnDemoDS(trUtf8(
+      "Mandel demo 1: dynamics and sets"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[2])
+   {  QmnDemo *demo = new QmnDemoPB(trUtf8(
+      "Mandel demo 2: periodic points and bifurcations"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[3])
+   {  QmnDemo *demo = new QmnDemoER(trUtf8(
+      "Mandel demo 3: external rays"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[4])
+   {  QmnDemo *demo = new QmnDemoCC(trUtf8(
+      "Mandel demo 4: combinatorics"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[5])
+   {  QmnDemo *demo = new QmnDemoRN(trUtf8(
+      "Mandel demo 5: renormalization"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[6])
+   {  QmnDemo *demo = new QmnDemoAS(trUtf8(
+      "Mandel demo 6: asymptotic similarity at Misiurewicz points"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[7])
+   {  QmnDemo *demo = new QmnDemoLS(trUtf8(
+      "Mandel demo 7: local similarity"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[8])
+   {  QmnDemo *demo = new QmnDemoQC(trUtf8(
+      "Mandel demo 8: quasiconformal surgery"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[9]) //see updateActions and F1
+   {  QmnDemo *demo = new QmnDemo(trUtf8(
+      "Mandel demo 9: new families of functions"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+   if (act == demoActs[10])
+   {  QmnDemo *demo = new QmnDemoCZ(trUtf8(
+      "Mandel demo: Celia and Zach, a fairy tale"), 0);
+      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      demo->showMaximized();
+   }
+}
 
 int main(int argc, char *argv[])
 {  QApplication app(argc, argv);
@@ -68,7 +156,7 @@ QmnShell::QmnShell(int argc, char *argv[], QWidget *parent)
 {  if (QApplication::desktop()->width() >= 1312) thesize = 640;
    else thesize = 480;
    pmode = 1; dmode = 1; themode = &pmode;
-   as = new mndScale(); mpath = 0;
+   as = new mndScale(); mpath = 0; imgno = 0;
    f = 0; //for delete in setF()
    setWindowIcon(QPixmap((const char **)(QmnIcon_xpm16)));
    spiderPix = new QPixmap((const char **)(QmnSpider16));
@@ -164,11 +252,17 @@ void QmnShell::createActions()
    vidAct3 = new QAction(trUtf8("&3: Combine three ..."), vidAG);
    vidAct4 = new QAction(trUtf8("&4: Combine four..."), vidAG);
    vidAct5 = new QAction(trUtf8("&5: Change colors ..."), vidAG);
-   limbAct2 = new QAction(trUtf8("&6: 1/2-limb ..."), vidAG);
-   limbAct3 = new QAction(trUtf8("&7: 1/3-limb ..."), vidAG);
-   limbAct4 = new QAction(trUtf8("&8: other limbs ..."), vidAG);
-   veinAct2 = new QAction(trUtf8("&9: 1/2-vein ..."), vidAG);
-   veinAct3 = new QAction(trUtf8("&0: 1/4-vein ..."), vidAG);
+   QAction *vvSeparator = new QAction(this);
+   vvSeparator->setSeparator(true); vidAG->addAction(vvSeparator);
+   slowmateAct = new QAction(trUtf8("&6: Slow mating ..."), vidAG);
+   slowmateAct->setShortcut(QString("d"));
+   slowantiAct = new QAction(trUtf8("&7: Slow anti-mating ..."), vidAG);
+   slowantiAct->setShortcut(QString("Ctrl+d"));
+   veinAct2 = new QAction(trUtf8("&8: 1/2-vein ..."), vidAG);
+   veinAct3 = new QAction(trUtf8("&9: 1/4-vein ..."), vidAG);
+   limbAct2 = new QAction(trUtf8("&m: 1/2-limb ..."), vidAG);
+   limbAct3 = new QAction(trUtf8("&n: 1/3-limb ..."), vidAG);
+   limbAct4 = new QAction(trUtf8("&o: other limbs ..."), vidAG);
    connect(vidAG, SIGNAL(triggered(QAction*)), this, SLOT(setFile(QAction*)));
    vidMenu = new QMenu(this); vidMenu->addActions(vidAG->actions());
 
@@ -451,21 +545,21 @@ void QmnShell::createActions()
 
    QActionGroup *f3AG = new QActionGroup(this);
    f3Acts[1] = new QAction(
-      trUtf8("&1: c(z^3 - 3z) , semi-conj. to 2.2 [Q]"), f3AG);
-   f3Acts[2] = new QAction(
-      trUtf8("&2: c(z^3 - 3z - 2) + 1 , cr.pt. -> cr.pt.: M_2 , M_4"), f3AG);
-   f3Acts[3] = new QAction(
-      trUtf8("&3: c(z^3 - 3z - 2) - 2 , cr. orbits meet"), f3AG);
+      trUtf8("&0: c(z^3 - 3z) , semi-conj. to 2.2 [Q]"), f3AG);
    f3Acts[4] = new QAction(
-      trUtf8("&4: c(z^3 - 3z - 2) - 1 , superattracting fixed point"), f3AG);
+      trUtf8("&1: c(z^3 - 3z - 2) - 1 , superattracting fixed point"), f3AG);
    f3Acts[5] = new QAction(trUtf8(
-      "&5: A(z^3 - 3z - 2) + c , superattr. 2-cycle (Willumsen)"), f3AG);
+      "&2: A(z^3 - 3z - 2) + c , superattracting 2-cycle"), f3AG);
    f3Acts[6] = new QAction(
-      trUtf8("&6: A(z^3 - 3z - 2) + b , superattr. 3-cycle"), f3AG);
+      trUtf8("&3: A(z^3 - 3z - 2) + b , superattr. 3-cycle"), f3AG);
+   f3Acts[2] = new QAction(
+      trUtf8("&5: c(z^3 - 3z - 2) + 1 , cr.pt. -> cr.pt.: M_2 , M_4"), f3AG);
+   f3Acts[3] = new QAction(
+      trUtf8("&6: c(z^3 - 3z - 2) - 2 , cr. orbits meet"), f3AG);
    f3Acts[7] = new QAction(
       trUtf8("&7: A(z^3 - 3z - 2) + c , cr.pt. preperiodic"), f3AG);
    f3Acts[8] = new QAction(trUtf8(
-      "&8: z^3 + cz^2 + \xce\xbb z (Zakeri, Buff, Henriksen) [Q] Siegel"),
+      "&8: z^3 + cz^2 + \xce\xbb z Siegel disk [Q]"),
       f3AG);
    f3Acts[9] = new QAction(
       trUtf8("&9: 2-cycle of Siegel disks [Q]"), f3AG);
@@ -503,33 +597,34 @@ void QmnShell::createActions()
    f4Act->setMenu(f4Menu);
 
    QActionGroup *f5AG = new QActionGroup(this);
-   f5Acts[13] = new QAction(
-      trUtf8("&m: Mating"), f5AG);
-   f5Acts[0] = new QAction(trUtf8("&0: 1 + c/z^2 , 0 \xe2\x86\x92 \xe2\x88\x9e [Q]"), f5AG);
+   f5Acts[13] = new QAction(trUtf8("&m: Mating"), f5AG);
+   f5Acts[0] = new QAction(trUtf8("&0: 1 + c/z^2, 0 \xe2\x86\x92 \xe2\x88\x9e [Q]"), f5AG);
    f5Acts[1] = new QAction(trUtf8(
-      "&1: (z^2 + c)/(1 + cz^2) , symmetric under inversion [Ctrl+Q]"), f5AG);
+      "&1: (z^2 + c)/(1 + cz^2), symmetric under inversion [Ctrl+Q]"), f5AG);
    f5Acts[2] = new QAction(
-      trUtf8("&2: (z^2 + c)/(z^2 - 1) , \xe2\x88\x9e is 2-periodic"), f5AG);
-   f5Acts[3] = new QAction(trUtf8("&3: \xe2\x88\x9e is 3-periodic [Ctrl+Q]"), f5AG);
-   f5Acts[4] = new QAction(
-      trUtf8("&4: \xe2\x88\x9e has preperiod 1, period 2 [Ctrl+Q]"), f5AG);
-   f5Acts[5] = new QAction(trUtf8(
-      "&5: \xe2\x88\x9e has preperiod 2, period 1 [Ctrl+Q]"), f5AG);
+      trUtf8("&2: (z^2 + c)/(1 - z^2), \xe2\x88\x9e is 2-periodic"), f5AG);
+   f5Acts[3] = new QAction(trUtf8("&3: (z^2 + A)/(c^2 - z^2), \xe2\x88\x9e is 3-periodic [Ctrl+Q]"), f5AG);
+   f5Acts[14] = new QAction(trUtf8("&4: \xe2\x88\x9e is 4-periodic"), f5AG);
+   f5Acts[15] = new QAction(trUtf8("&5: \xe2\x88\x9e is 5-periodic"), f5AG);
    f5Acts[6] = new QAction(
       trUtf8("&6: \xe2\x88\x9e has preperiod 1, period 1 [Ctrl+Q]"), f5AG);
+   f5Acts[4] = new QAction(
+      trUtf8("&7: \xe2\x88\x9e has preperiod 1, period 2 [Ctrl+Q]"), f5AG);
+   f5Acts[5] = new QAction(trUtf8(
+      "&?: \xe2\x88\x9e has preperiod 2, period 1 [Ctrl+Q]"), f5AG);
    f5Acts[7] = new QAction(
-      trUtf8("&7: (z^2 - c)/(z^2 + c) , critical orbits meet [Ctrl+Q]"), f5AG);
+      trUtf8("&8: (z^2 - c)/(z^2 + c), critical orbits meet [Ctrl+Q]"), f5AG);
    f5Acts[8] = new QAction(
-      trUtf8("&8: (z^2 - 1)/(z^2 + c) , \xe2\x88\x9e \xe2\x86\x92 1 "
+      trUtf8("&9: (z^2 - 1)/(z^2 + c), \xe2\x88\x9e \xe2\x86\x92 1 "
          "\xe2\x86\x92 0 [Ctrl+Q]"), f5AG);
    f5Acts[9] = new QAction(
-      trUtf8("&9: Persistent Siegel disk [Q, Ctrl+Q]"), f5AG);
+      trUtf8("&s: Persistent Siegel disk [Q, Ctrl+Q]"), f5AG);
    f5Acts[10] = new QAction(
       trUtf8("&h: Cubic rational with Herman ring, antipode preserving [Q]"), f5AG);
    f5Acts[11] = new QAction(
-      trUtf8("&t: c(z + 0.5/z^2) , cubic with rotational symmetry"), f5AG);
+      trUtf8("&r: c(z + 0.5/z^2), cubic with rotational symmetry"), f5AG);
    f5Acts[12] = new QAction(
-      trUtf8("&s: z^2 + c/z^2 , quartic, critical orbits meet"), f5AG);
+      trUtf8("&p: z^2 + c/z^2, quartic, critical orbits meet"), f5AG);
    connect(f5AG, SIGNAL(triggered(QAction*)), this, SLOT(setF(QAction*)));
    f5Menu = new QMenu(this); f5Menu->addActions(f5AG->actions());
    f5Act = new QAction(trUtf8("&5: Rational maps"), ftypeAG);
@@ -741,7 +836,7 @@ void QmnShell::updateActions()
    bifurcateAct->setEnabled(signtype > 0 && f->bifurcate(-1.0, x, y));
    bifucentAct->setEnabled(signtype > 0 && !ftype);
    greenAct->setEnabled(ftype <= 1 && !sphere);
-   rayAct->setEnabled(!ftype || (ftype == 1 && !sphere)
+   rayAct->setEnabled(!ftype || (ftype == 1 && !sphere) || ftype == 24
       || (ftype == 28 && (signtype == 2 || signtype == -2) )
       || (signtype < 0 && (ftype == 95 || ftype == 25 || ftype == 35) ) );
    rayPointAct->setEnabled(!ftype || ftype == 58);
@@ -828,7 +923,7 @@ void QmnShell::updateActions()
    if (ftype % 10 == 5) pathMenu->setEnabled(false);
    if (ftype == 25 && signtype > 0) pathMenu->setEnabled(true);
    if (ftype == 25 && signtype > 0) spider2Act->setEnabled(false);
-   if ((ftype == 15 || ftype == 35) && signtype > 0)
+   if ((ftype == 5 || ftype == 15 || ftype == 35) && signtype > 0)
    {  pathMenu->setEnabled(true);
       spider1Act->setEnabled(true);
       spider2Act->setEnabled(ftype == 15);
@@ -837,7 +932,10 @@ void QmnShell::updateActions()
       pathAct->setEnabled(false);
       captAct->setEnabled(false);
    }
-   f5Acts[13]->setEnabled(false);
+   slowmateAct->setEnabled(signtype > 0 &&
+      (ftype == 5 || ftype == 15 || ftype == 25 || ftype == 35));
+   slowantiAct->setEnabled(signtype > 0 && (ftype == 5 || ftype == 25));
+   f5Acts[13]->setEnabled(signtype > 0);
    f5Acts[5]->setEnabled(false);
    f6Acts[3]->setEnabled(false);
    f6Acts[5]->setEnabled(false);
@@ -1049,9 +1147,15 @@ void QmnShell::resizeWin(QAction *act)
    }
    if (act != sizeAct) return;
    uint n = uint(thesize), n1 = 240u, n2 = 8000u, size0 = n;
+   mdouble x = 0.0L, y = 0.0L, u = 0.0L, v = 0.0L;
+   if (theplane->getType() >= 0) theplane->getPlane(x, y, u, v);
    QmnUIntDialog *dialog = new QmnUIntDialog(trUtf8(
-      "Adjust the image size (%1 ... %2) :").arg(
-         QString::number(n1)).arg(QString::number(n2)),
+      "The center is (%3, %4) and\n"
+      "the half width is (%5, %6).\n"
+      "Adjust the image size in pixels (%1 ... %2) :").arg(
+          QString::number(n1)).arg(QString::number(n2)).arg(
+          QString::number(x, 'f', 15)).arg(QString::number(y, 'f', 15)).
+          arg(QString::number(u, 'f', 15)).arg(QString::number(v, 'f', 15)),
        &n, &n1, n2, 0, this, 40);
    connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
    if (!dialog->exec() || n == size0) return;
@@ -1153,7 +1257,7 @@ void QmnShell::drawing(QAction *act)
             mndynamics::root(X, Y, X, Y); w = X*u - Y*v; Y = X*v + Y*u; X = w;
             if (X*X + Y*Y < 1.0e-30) {n = 2*N; break; }
             if (nearx*X + neary*Y < 0.0) { X = -X; Y = -Y; }
-            x[m] = X; y[m] = Y; dplane->drawLine(nearx, neary, X, Y);            
+            x[m] = X; y[m] = Y; dplane->drawLine(nearx, neary, X, Y);
          }
          //dplane->drawLine(x[0], y[0], XX, YY); XX = x[0]; YY = y[0];
       }
@@ -1227,11 +1331,11 @@ void QmnShell::drawing(QAction *act)
       qulonglong M1 = 1ULL, M2 = (N >> 1); int i;
       if (n > 10)
       {  for (M1 = 1ULL; M1 < 1024ULL; M1++)
-         {  x=10.0; pplane->newtonRay(1, M1, 1024ULL, x, y, 5, Qt::white, 10);
+         {  x=10.0; pplane->newtonRay(1, M1, 1024ULL, x, y, 5, Qt::darkMagenta, 10);
             if (!pplane->pointToPos(x, y, i, k)) break;
          }
          for (M2 = 1023ULL; M2 > M1; M2--)
-         {  x=10.0; pplane->newtonRay(1, M2, 1024ULL, x, y, 5, Qt::white, 10);
+         {  x=10.0; pplane->newtonRay(1, M2, 1024ULL, x, y, 5, Qt::darkMagenta, 10);
             if (!pplane->pointToPos(x, y, i, k)) break;
          }
          M1 = ((M1 - 1ULL) << (n - 10)) + 1ULL;
@@ -1242,7 +1346,7 @@ void QmnShell::drawing(QAction *act)
       {  lambda = mndAngle::lambda(M, N, 1.0e-6, 500);
          if (lambda > 2.0) continue;
          k = (int)(367.0*log(lambda));
-         pplane->newtonRay(1, M, N, x, y, 5, Qt::white, 10);
+         pplane->newtonRay(1, M, N, x, y, 5, Qt::darkMagenta, 10);
          pplane->drawLine(x, y, x, y, QColor(k, 0, 255 - k));
          pplane->drawLine(x, -y, x, -y, QColor(k, 0, 255 - k));
       }//adapted*/
@@ -1440,22 +1544,47 @@ void QmnShell::setRay(QAction *act)
       else pplane->stop();
       theplane->green(f, signtype, y, 10);
    }
+   /*if (act == rayAct && ftype == 24 && signtype > 0 && dplane->getType() < 0)
+   {  int k = 6, l; qulonglong N1, N2 = 3ULL << 2*k;
+      mdouble x = 0.0L, y = 0.0L, x0, y0;
+      for (N1 = 1ULL; N1 <= N2/6ULL; N1 += 2ULL)
+      {  x0 = x; y0 = y;
+         if (f->mandelRay(1, -150, N1, N2, &x, &y) < 0
+             || f->find(1, k, 1, x, y) || x*x + y*y < 0.54L)
+         { x = x0; y = y0; continue; }
+         if (N1 == 1ULL) continue; pplane->drawLine(x0, y0, x, y, Qt::red);
+      }
+      return;
+   }//*/
+   /*if (act == rayAct && ftype == 1 && signtype == 4 && dplane->getType() < 0)
+   {  int k = 6, l; qulonglong N1, N2 = 3ULL << (2*k - 1);
+      mdouble x = 0.0L, y = 0.0L, x0, y0;
+      for (N1 = 1ULL; N1 <= N2/6ULL; N1 += 2ULL)
+      {  x0 = x; y0 = y;
+         if (f->mandelRay(1, -150, N1, N2, &x, &y) < 0
+             || f->find(1, k, 1, x, y) || x*x + y*y < 0.22L)
+         { x = x0; y = y0; continue; }
+         if (N1 == 1ULL) continue; pplane->drawLine(x0, y0, x, y, Qt::red);
+      }
+      return;
+   }//*/
    if (act == rayAct)
    {  uint method, q = 0; mdouble x, y; f->getParameter(x, y);
-      qulonglong N1 = 1LL, N2 = 2LL;
-      if (signtype < 0) { N1 = 0LL; if (dplane->getType() < 0) N2 = 1LL; }
-      if (ftype == 1) { N1 = 2LL; N2 = 2LL; }
-      if (ftype == 28) { N1 = 1LL; N2 = 1LL; }
+      qulonglong N1 = 1LL, N2 = 2ULL;
+      if (signtype < 0) { N1 = 0ULL; if (dplane->getType() < 0) N2 = 1ULL; }
+      if (ftype == 1) { N1 = 2ULL; N2 = 2ULL; }
+      if (ftype == 28) { N1 = 1ULL; N2 = 1ULL; }
       QmnRayDialog *dialog = new QmnRayDialog(enterAngleString, trUtf8(
          "Adjust the quality, 2...10. It is the number of intermediate\n"
          "points, or it concerns the distance to the starting point."),
          &N1, &N2, &method, &q, 3, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
       if (!dialog->exec()) return; if (ftype == 28) method = 5;
-      if (!method && dplane->backRay(N1, N2, x, y, q, Qt::white, 1))
+      if (ftype == 24 || (ftype == 1 && signtype*signtype == 16)) method = 1;
+      if (!method && dplane->backRay(N1, N2, x, y, q, Qt::darkMagenta, 1))
          method = 1;
       if (method & 1)
-         theplane->newtonRay(signtype, N1, N2, x, y, q, Qt::white, method);
+         theplane->mandelRay(signtype, f, N1, N2, x, y); //quality = 6
       if (method & 2)
       {  if (signtype > 0) { drawLater = 0; dplane->stop(); }
          else pplane->stop();
@@ -1464,7 +1593,7 @@ void QmnShell::setRay(QAction *act)
    }
    if (act == rayPointAct)
    {  mdouble x, y; f->getParameter(x, y);
-      qulonglong N1 = 0LL, N2;
+      qulonglong N1 = 0ULL, N2;
       QmnCombiDialog *dialog = new QmnCombiDialog(enterAngleString,
          &N1, &N2, 3, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
@@ -1538,10 +1667,9 @@ void QmnShell::setRay(QAction *act)
          uint n; pplane->getNmax(n);
          pplane->setPoint(x, l*0.01*n); return;
       }
-      if (q) pplane->newtonRay(1, n1, N2, x, y, 5, Qt::white, 1);
-      if (signtype < 0) q = dplane->backRay(N1, N2, x, y, 5, Qt::white, 2);
-      else q = pplane->newtonRay(1, N1, N2, x, y, 5, Qt::white, 2);
-      if (q <= 1 && !f->find(signtype, k, p, x, y)) theplane->setPoint(x, y);
+      if (q) pplane->mandelRay(signtype, f, n1, N2, x, y);
+      theplane->mandelRay(signtype, f, N1, N2, x, y);
+      if (!f->find(signtype, k, p, x, y)) theplane->setPoint(x, y);
    }
    if (act == portraitAct)
    {  mdouble x, y; f->getParameter(x, y);
@@ -1647,8 +1775,8 @@ void QmnShell::setRay(QAction *act)
       {  uint nn; pplane->getNmax(nn);
          pplane->setPoint(((mdouble)(n))/((mdouble)(d)), 0.01*nn); return;
       }
-      pplane->newtonRay(1, n, d, x, y, 5, Qt::white, 1); n++;
-      if (pplane->newtonRay(1, n, d, x, y, 5, Qt::white, 2) <= 1
+      pplane->newtonRay(1, n, d, x, y, 5, Qt::darkMagenta, 1); n++;
+      if (pplane->newtonRay(1, n, d, x, y, 5, Qt::darkMagenta, 2) <= 1
           && !f->find(1, 0, r, x, y)) pplane->setPoint(x, y);
    }
    if (act == kneadAct)
@@ -1712,19 +1840,19 @@ void QmnShell::setRay(QAction *act)
          uint n; pplane->getNmax(n);
          pplane->setPoint(((mdouble)(n1))/((mdouble)(d)), l*0.01*n); return;
       }
-      q = 0; mdouble x, y; pplane->newtonRay(1, n1, d, x, y, 5, Qt::white, 1);
-      if (pplane->newtonRay(1, n2, d, x, y, 5, Qt::white, 2) <= 1
+      q = 0; mdouble x, y; pplane->newtonRay(1, n1, d, x, y, 5, Qt::darkMagenta, 1);
+      if (pplane->newtonRay(1, n2, d, x, y, 5, Qt::darkMagenta, 2) <= 1
           && !f->find(1, 0, p, x, y)) pplane->setPoint(x, y);
       while (1)
       {  q++; N2 -= 1LL << (p - 1); p = c.setAddress(N2); if (p <= 1) break;
          c.toAngles(n1, n2, d);
          pplane->newtonRay(1, n1, d, x, y, 5,
-            (q & 1 ? Qt::yellow : Qt::white), 1);
+            (q & 1 ? Qt::yellow : Qt::darkMagenta), 1);
          pplane->newtonRay(1, n2, d, x, y, 5,
-            (q & 1 ? Qt::yellow : Qt::white), 1);
+            (q & 1 ? Qt::yellow : Qt::darkMagenta), 1);
       }
-      pplane->newtonRay(1, 0LL, 1LL, x, y, 5,
-         (q & 1 ? Qt::yellow : Qt::white), 1);
+      pplane->newtonRay(1, 0ULL, 1ULL, x, y, 5,
+         (q & 1 ? Qt::yellow : Qt::darkMagenta), 1);
    }
 } //setRay
    
@@ -1890,7 +2018,7 @@ void QmnShell::setPath(QAction *act)
       mndlbrot *F = new mndlbrot(2);
       mdouble x, y; int k, p = mndAngle::normalize(N1, N2, k);
       if (!p || (!k && p == 1)
-           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::white, 10) > 1
+           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::darkMagenta, 10) > 1
            || F->find(1, k, p, x, y) ) { delete F; setPath(0); return; }
       delete F; pplane->stop(); drawLater = 0; lsppp = 0; dplane->move(10);
       updateRegion = true; dplane->draw(f, 0, themode);
@@ -1920,9 +2048,12 @@ void QmnShell::setPath(QAction *act)
    }
    if (act == mate2Act)
    {  mdouble x = 0.339093, y = -0.446630; enterAngleString = QString();
-      if (ftype != 24) enterAngleString = trUtf8(
+      if (ftype == 24)
+      {  f->getParameter(x, y);
+         mdouble u = x*(x*x - 3.0L*y*y); y *= 3.0L*x*x - y*y; x = u;
+      }
+      else enterAngleString = trUtf8(
          "\nOr start with the quartic polynomial family 4.2.");
-      else f->getParameter(x, y);
          QmnDoubleDialog *dialoga = new QmnDoubleDialog(trUtf8(
          "For the anti-mating of  z^2 - q^2  and  z^2 + q ,\n"
          "enter the real and imaginary parts of  q^3 .\n"
@@ -1944,6 +2075,26 @@ void QmnShell::setPath(QAction *act)
       f->setDegree(3); updateActions(); //pMoved();
       setPath(stepAct);
    }
+   if (act == spider1Act && ftype == 5)
+   {  qulonglong N1 = 0ULL, N2;
+      QmnCombiDialog *dialogs = new QmnCombiDialog(enterAngleString,
+         &N1, &N2, 4, this);
+      connect(dialogs, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!dialogs->exec()) return;
+      mndlbrot *F = new mndlbrot(2);
+      mdouble x, y, rc, ic; int k, p = mndAngle::normalize(N1, N2, k);
+      if (!p || k < 2
+           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::darkMagenta, 10) > 1
+           || F->find(1, k, p, x, y) ) { delete F; return; }
+      mandelPath *mpm = new mandelMating(); mpm->setMating(k, p, x, y, 1);
+      k--; N2 >>= 1; if (N1 > N2) N1 -= N2; N1 = N2 - N1;
+      if (dplane->newtonRay(1, N1, N2, x, y, 5, Qt::darkMagenta, 10) > 1
+           || F->find(1, k, p, x, y) ) { delete F; delete mpm; return; }
+      delete F; mpm->setMating(k, p, x, y, 0);
+      for (k = 1; k <= 1000; k++) mpm->step(rc, ic);
+      x = rc*rc - ic*ic; y = 2.0L*rc*ic; rc--;
+      pplane->setPoint(rc*x - ic*y, ic*x + rc*y); delete mpm;
+   }
    if ((act == spider1Act || act == spider2Act) && ftype == 15)
    {  qulonglong N1 = 0ULL, N2;
       QmnCombiDialog *dialogs = new QmnCombiDialog(enterAngleString,
@@ -1953,11 +2104,10 @@ void QmnShell::setPath(QAction *act)
       mndlbrot *F = new mndlbrot(2);
       mdouble x, y, rc, ic; int k, p = mndAngle::normalize(N1, N2, k);
       if (!p || (!k && p == 1)
-           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::white, 10) > 1
+           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::darkMagenta, 10) > 1
            || F->find(1, k, p, x, y) ) { delete F; return; }
-      delete F; mandelPathMate *mpm = new mandelPathMate(0, 150);
-      mpm->mating(k, p, x, y, logTen, 0);
-      mpm->mating(k, p, x, y, logTen, 1);
+      delete F; mandelPath *mpm = new mandelMate1();
+      mpm->setMating(k, p, x, y, 0);
       for (k = 1; k <= 1000; k++) mpm->step(rc, ic);
       if (act == spider2Act)
       { x = rc*rc + ic*ic; rc /= x; ic /= -x; }
@@ -1972,24 +2122,59 @@ void QmnShell::setPath(QAction *act)
       mndlbrot *F = new mndlbrot(2);
       mdouble x, y, rc, ic; int k, p = mndAngle::normalize(N1, N2, k);
       if (!p || (!k && p == 1)
-           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::white, 10) > 1
+           || dplane->newtonRay(1, N1, N2, x, y, 5, Qt::darkMagenta, 10) > 1
            || F->find(1, k, p, x, y) ) { delete F; return; }
-      delete F; mandelPathMate *mpm = new mandelPathMate(0, 150);
-      mpm->mating(k, p, x, y, logTen, 0); pplane->getPoint(rc, ic);
+      delete F; mandelPath *mpm = new mandelMating();
+      mpm->setMating(k, p, x, y, 0); pplane->getPoint(rc, ic);
       x = -0.122561166876654L; y = 0.744861766619744L; if (ic < 0) y = -y;
       if (rc > 0) { x = -1.754877666246693L; y = 0.0L; }
-      mpm->mating(0, 3, x, y, logTen, 1);
+      mpm->setMating(0, 3, x, y, 1);
       for (k = 1; k <= 1000; k++) mpm->step(rc, ic);
-      mdouble u, v, w, rd = mpm->rD, id = mpm->iD;
-      u = rd - 1.0L; v = id; x = 1.0L - rc; y = ic; w = x*x + y*y;
-      u /= w; v /= w; w = u*x - v*y; y = u*y + v*x; x = w;
-      u = rd*rd - id*id; v = 2.0L*rd*id; w=u*u + v*v;
-      x /= w; y /= w; w = x*u + y*v; y = y*u - x*v; x = w;
-      w = rd*rd + id*id; u = rc/w; v = ic/w;
-      w = u*rd + v*id; v = v*rd - u*id; u = w;
-      w = u*x - v*y; v = u*y + v*x; u = w;
-      u++; x++; w = x*x + y*y; rc = -(u*x + v*y)/w; ic = (u*y - v*x)/w;
+      mpm->getParameters(rc, ic, x, y, 3);
       pplane->setPoint(rc, ic); delete mpm;
+   }
+   if (act == f5Act) //draw segments, later as function 5.m
+   {  mdouble a, b, A, B, *x, *y, *X, *Y; QColor cl;
+      int i, k, p, K, P; QString name = QString(
+      "Slow mating from two angles; only the path of marked points is shown.\n"
+      "Save video frames 1026.png to 1800.png in the current directory\n%1 .\n"
+      "Make the video with the shell command\n"
+      "ffmpeg -start_number 1026 -i %04d.png -c:v libx264 "
+      "-pix_fmt yuv420p out.mp4\n"
+      "Note: the current directory is changed with F6 ... F8.\n\n"
+      "Enter the first angle:"
+      ).arg(QDir::toNativeSeparators(QDir::currentPath()));
+      qulonglong N1 = 0ULL, N2;
+      QmnCombiDialog *dialog = new QmnCombiDialog(name, &N1, &N2, 4, this);
+      connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!dialog->exec()) return; p = mndAngle::normalize(N1, N2, k);
+      mndynamics *F = new mndlbrot(2); mandelPath *mpm = new mandelMating();
+      if (F->mandelRay(1, -150, N1, N2, &a, &b) < 0 || F->find(1, k, p, a, b) ) return;
+      mpm->setMating(k, p, a, b, 0); N1 = 0ULL;
+      name = QString("Enter the second angle, then expect some freezing:");
+      QmnCombiDialog *dialog1 = new QmnCombiDialog(name, &N1, &N2, 4, this);
+      connect(dialog1, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!dialog1->exec()) return; P = mndAngle::normalize(N1, N2, K);
+      if (F->mandelRay(1, -150, N1, N2, &A, &B) < 0 || F->find(1, K, P, A, B) ) return;
+      mpm->setMating(K, P, A, B, 1); mpm->init(0.0L);
+      k += p; x = new mdouble[26*k]; y = new mdouble[26*k];
+      K += P; X = new mdouble[26*K]; Y = new mdouble[26*K];
+      dplane->draw(f, 0, themode); dplane->replaceColor(0, 15);
+      for (p = 1026; p < 1800; p += 25)
+      {  mpm->getSegments(x, y, 0); mpm->getSegments(X, Y, 1);
+         for (P = 0; P < 25; P++)
+         {  cl = (p & 1 ? Qt::blue : Qt::darkBlue);
+            for (i = 0; i < k; i++)
+              dplane->drawLine(x[P*k+i], y[P*k+i], x[P*k+k+i], y[P*k+k+i], cl);
+            cl = (p & 1 ? Qt::red : Qt::darkRed);
+            for (i = 0; i < K; i++)
+              dplane->drawLine(X[P*K+i], Y[P*K+i], X[P*K+K+i], Y[P*K+K+i], cl);
+            name = QString("%1.png").arg(p + P); dplane->savePNG(name);
+         }
+         mpm->step(a, b); dplane->setPoint(a, b);
+      }
+      delete[] X; delete[] Y; delete[] x; delete[] y;
+      delete mpm; delete F; return;
    }
 } //setPath
 
@@ -2172,7 +2357,8 @@ void QmnShell::setLS(QAction *act)
 } //setLS
 
 void QmnShell::setF(QAction *act)
-{  int i, st = 0;
+{  if (act == f5Acts[13]) { setPath(f5Act); return; }
+   int i, st = 0;
    if (act == degreeAct && !ftype) { drawing(degreeAct); return; }
    if (act == degreeAct && ftype == 1)
    {  uint q = uint(signtype > 0 ? signtype : -signtype), n = q, m = 3u;
@@ -2271,7 +2457,7 @@ void QmnShell::setF(QAction *act)
       else { u /= z; v /= z; z = x*u + y*v; y = y*u - x*v; x = z; }
       z = a*x - b*y; b = a*y + b*x; a = z;
       pplane->stop(); dplane->stop();
-      st = 1; delete f; f = new mandelBitransitive(st);
+      st = 1; delete f; f = new mandelV0(st);
       f->setParameter(a, b); f->startPlane(0, x, y);
    }
    if (act == degreeAct && ftype == 5)
@@ -2340,18 +2526,22 @@ void QmnShell::setF(QAction *act)
       f = new mndquartsiegel(st);
    }
    if (act == f5Act) { f5Menu->exec(QCursor::pos()); return; }
-   if (act == f5Acts[13])
-   { ftype = 95; st = 1; delete f; f = new mandelMating(st); }
+   //if (act == f5Acts[13]) //above
+   //{ ftype = 95; st = 1; delete f; f = new mndMating(st); }
    if (act == f5Acts[0])
-   { ftype = 5; st = 1; delete f; f = new mandelBitransitive(st); }//path also q
+   { ftype = 5; st = 1; delete f; f = new mandelV0(st); }//path also q
    if (act == f5Acts[1])
-   { ftype = 15; st = 1; delete f; f = new mandelSymmetric(st); }
+   { ftype = 15; st = 1; delete f; f = new mandelV1(st); }
    if (act == f5Acts[2])
-   { ftype = 25; st = 4; delete f; f = new mandelMateTwo(st);
-     delete mpath; mpath = new mandelPathTwo(1); }
+   { ftype = 25; st = 4; delete f; f = new mandelV2(st);
+     delete mpath; mpath = new mndPathTwo(1); }
    if (act == f5Acts[3])
-   { ftype = 35; st = 4; delete f; f = new mandelMateThree(st); }
-     //delete mpath; mpath = new mandelPathThree(1); }
+   { ftype = 35; st = 4; delete f; f = new mandelV3(st); }
+     //delete mpath; mpath = new mndPathThree(1); }
+   if (act == f5Acts[14])
+   { ftype = 145; st = 4; delete f; f = new mandelV45(st); }
+   if (act == f5Acts[15])
+   { ftype = 155; st = 5; delete f; f = new mandelV45(st); }
    for (i = 4; i <= 8; i++) if (act == f5Acts[i])
    { ftype = 45; st = i; delete f; f = new mandelRational(st); }
    if (act == f5Acts[9])
@@ -2362,6 +2552,7 @@ void QmnShell::setF(QAction *act)
    { ftype = 65; st = 1; delete f; f = new mndmenage(st); }
    if (act == f5Acts[12])
    { ftype = 75; st = 1; delete f; f = new mndsingpert(st); }
+
    if (act == f6Act) { f6Menu->exec(QCursor::pos()); return; }
    if (act == f6Acts[0])
    { ftype = 6; st = 1; delete f; f = new mndcubicnewton(st); }
@@ -2519,7 +2710,7 @@ void QmnShell::setFile(QAction *act)
    if (act == vidAct1)
    {  QString name = trUtf8(
       "Save video frames 1001.png to 2000.png in the current directory\n%1\n"
-      "by overlaying red pixels of images from the subdirectories p and q.\n"
+      "by overlaying _red_ pixels of images from the subdirectories p and q.\n"
       "Make the video with the shell command\n"
       "ffmpeg -start_number 1001 -i %04d.png -c:v libx264 "
       "-pix_fmt yuv420p out.mp4\n"
@@ -2557,7 +2748,23 @@ void QmnShell::setFile(QAction *act)
          if (!dplane->loadPNG(name)) continue;
          name = QString("%1.png").arg(img);
          pplane->savePNG(name, dplane);
-      }
+      }//*/
+      /*for (int img = 1001; img <= 2000; img++)
+      {  name = QString("p/%1.png").arg(img);
+         if (!pplane->loadPNG(name)) ;//continue;
+         name = QString("d/%1.png").arg(img);
+         if (!dplane->loadPNG(name)) ;//continue;
+         name = QString("%1.png").arg(img);
+         pplane->savePNG(name, dplane);
+      }//*/
+      /*for (int img = 1001; img <= 2000; img++)
+      {  name = QString("p/%1.png").arg(img > 1025 ? img + 25 : img);
+         if (!pplane->loadPNG(name)) ;//continue;
+         name = QString("d/%1.png").arg(img);
+         if (!dplane->loadPNG(name)) ;//continue;
+         name = QString("%1.png").arg(img);
+         pplane->savePNG(name, dplane);
+      }//*/
    }
    if (act == vidAct4)
    {  QString name = trUtf8(
@@ -2610,57 +2817,58 @@ void QmnShell::setFile(QAction *act)
       for (int img = 1001; img <= 2000; img++)
       {  name = QString("%1.png").arg(img);
          if (!pplane->loadPNG(name)) continue;
-         theplane->replaceColor(p, q); pplane->savePNG(name);
+         pplane->replaceColor(p, q); pplane->savePNG(name);
       }
    }
-      /*/locus vid
-      mndynamics *F = new mndlbrot(2);
-      if (b < 0.0)
-      {  pplane->setPlane(1.0462, 1.0615, 1.1437, 0.0);
-         pplane->setPoint(0.0, 0.0);
-         dplane->setPlane(-0.122, 0.882, 0.259, 0.0);
-         dplane->setNmax(5000); dplane->draw(F, 1, &dmode); return;
-      } 
-      int k, p, n = 17, j, img = 1000, c = 0, C = 1; C <<= n - 11;
-      mdouble u = 1.0/3.0, v = 4.0/sqrt(27.0), x0, y0; a = -0.125; b = 0.64952;
-      qulonglong MM, NN, M1, M2, M, N = 3ULL; N <<= n;
-      M1 = N/7ULL + 1ULL; M2 = (N << 1)/7ULL; dplane->setNmax(100);
-      for (M = M1; M <= M2; M++)
-      {  MM = M; NN = N; p = mndAngle::normalize(MM, NN, k);
-         if (dplane->newtonRay(1, MM, NN, x, y, 5, Qt::white, 10) > 1//visible 2
-           || F->find(1, k, p, x, y) || y < 0.6495)
-         { dplane->drawLine(a, b, x, y, Qt::magenta); a = x; b = y; }
-         else if (mpath->mating(k, p, x, y))
-         {  //QString name = QString("%1/%2 %3 %4").arg(MM).arg(NN).arg(x).arg(y);
-            //setWindowTitle(name);
-            dplane->drawLine(a, b, x, y, Qt::red); a = x; b = y;
+
+   /*/temporary for spine: set n, load 1025 from other vids, hit shift F9 6
+   if (act == veinAct2 || act == limbAct2)
+   {  QString name; mndynamics *F = new mndlbrot(2);
+      mndPathMate *Mpath = new mndPathMate(0, 50);
+      Mpath->mating(0, 3, -1.754877666246693L, 0.0L, logTen, 1);
+      mdouble x, y, x0 = 0.8445944976806L, y0 = 0.8921881866455L;
+      uint img = 1026, n, pp; qulonglong M, N, Nmin, Nmax, S, D = 7ULL;
+      pplane->getNmax(pp); pplane->setNmax(100);
+      if (pp > 30 || pp < 15) pp = 15; D <<= pp;
+      //pplane->setPlane(0.10557L, 1.09785L, 0.9336L, 0.0L);
+      //Nmin = D/7ULL + 1ULL; Nmax = 3ULL*D/14ULL; S = (Nmax - Nmin)/599ULL;
+      pplane->setPlane(0.69153L, 0.38915L, 0.55240L, 0.0L);
+      Nmin = 2ULL*D/7ULL + 1ULL; Nmax = D/3ULL; S = (Nmax - Nmin)/598ULL;
+      for (N = Nmin; N <= Nmax; N++)
+      {  if (!(N % S))
+         { name = QString("%1.png").arg(img); pplane->savePNG(name); img++; }
+         if (!(N % 7ULL)) continue; M = N;
+         for (n = 1; n < pp; n++)
+         {  M <<= 1; if (M >= D) M -= D;
+            if (7ULL*M < D || 7ULL*M > 6ULL*D) { M = 0ULL; break; }
          }
-         else
-         {  dplane->drawLine(a, b, x, y, Qt::white); a = x; b = y;
-            x0 = 0.0; y0 = 0.0;
-            for (j = 1; j <= 150; j++)
-            {  if (mpath->step(x, y)) { dplane->setNmax(j); return; }
-               if ((x-x0)*(x-x0)+(y-y0)*(y-y0) < 1e-12) break; x0 = x; y0 = y;
-            }
-            pplane->drawLine(u, v, x, y, Qt::white); u = x; v = y;
-         }
-         c++; if (c >= C)
-         {  c = 0; img++;
-            QString name = QString("/home/jung/mandelVids/pics/%1.png").arg(img);
-            pplane->savePNG(name);
-            name = QString("/home/jung/mandelVids/pics/both/%1.png").arg(img);
-            dplane->savePNG(name, pplane);
-         }
+         if (!M) continue;
+         M = N; n = pp;
+         while (1) { if (M & 1ULL) break; M >>= 1; n--; }
+         if (pplane->newtonRay(1, N, D, x, y, 5, Qt::white, 10) > 1
+             || F->find(1, n, 3, x, y) ) continue;
+         Mpath->mating(n, 3, x, y, logTen, 0);
+         for (n = 1; n <= 60; n++) if (Mpath->step(x, y)) { n = 0; break; }
+         //if (img < 1030 && y < x + 0.0475936889649L) continue;
+         //normalize  (z^2 + u+iv) / (z^2 + X+iY)
+         mdouble rc = x, ic = y, rd = Mpath->rD, id = Mpath->iD,
+         u = rd - 1.0L, v = id, X = 1.0L - rc, Y = ic, w = X*X + Y*Y;
+         u /= w; v /= w; w = u*X - v*Y; Y = u*Y + v*X; X = w;
+         u = rd*rd - id*id; v = 2.0L*rd*id; w=u*u + v*v;
+         X /= w; Y /= w; w = X*u + Y*v; Y = Y*u - X*v; X = w;
+         w = rd*rd + id*id; u = rc/w; v = ic/w;
+         w = u*rd + v*id; v = v*rd - u*id; u = w;
+         w = u*X - v*Y; v = u*Y + v*X; u = w;
+         //for V_3
+         u++; X++; w = X*X + Y*Y; x = -(u*X + v*Y)/w; y = (u*Y - v*X)/w;
+         if (n) { pplane->drawLine(x0, y0, x, y, Qt::red); x0 = x; y0 = y; }
       }
-      pplane->drawLine(x, y, 1.0/3.0, 4.0/sqrt(27.0), Qt::white);
-      dplane->drawLine(a, b, -0.125, 0.64952, Qt::white); //*/
-      /*/utility start
-      QString name = QString("/home/jung/mandelVids/pics/1000b.png");
-      theplane->loadPNG(name); int img;
-      for (img = 976; img <= 999; img++)
-      {  name = QString("/home/jung/mandelVids/pics/0%1.png").arg(img);
-         pplane->savePNG(name);
-      }//*/
+      if (y0 > 0.2) { x = -0.39512338225965L; y = 0.506843901805983L; }
+      else { x = 1.0; y = 0.0; }
+      pplane->drawLine(x0, y0, x, y, Qt::red);
+      name = QString("%1.png").arg(img); pplane->savePNG(name);
+      return;
+   } // temporary for spine */
 
    if (act == veinAct2 || act == limbAct2)
    {  QString name, text = trUtf8(
@@ -2668,25 +2876,19 @@ void QmnShell::setFile(QAction *act)
       "the Rabbit in family 5.3,\n"
       "-1/6 in family 5.6 with n_max even,\n"
       "3/14 in family 5.6 with n_max odd.\n"
-#ifdef SaveFramesOfVeinsLimbs
       "Video frames are saved in the current directory\n%1\n"
       "Make the video with the shell command\n"
       "ffmpeg -start_number 1001 -i %04d.png -c:v libx264 "
       "-pix_fmt yuv420p out.mp4\n"
       "Note: the current directory is changed with F6 ... F8."
-#else
-      "Note: if you want to save video frames for this, remove the\n"
-      "two slashes before #define SaveFramesOfVeinsLimbs\n"
-      "at the beginning of qmnshell.cpp and recompile."
-#endif
       ).arg(QDir::toNativeSeparators(QDir::currentPath()));
-      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
       if (!dialog->exec()) return;
       if (ftype == 45)
       { uint m; pplane->getNmax(m); if (m & 1) ftype = 65; }
       mndynamics *F = new mndlbrot(2); pplane->setNmax(500);
-      mandelPathMate *Mpath = new mandelPathMate(0, 50);
+      mndPathMate *Mpath = new mndPathMate(0, 50);
       int img = 1000, k, p, n, j = 1, K, npf;
       qulonglong N0, D0, N, D, N1;
       if (act == limbAct2)
@@ -2716,18 +2918,12 @@ void QmnShell::setFile(QAction *act)
          Mpath->mating(1, 3, -0.155788496687127L, 1.112217114596038L, logTen, 1);
       }
       while (img < 1025)
-      {
-#ifdef SaveFramesOfVeinsLimbsX
-         img++;
-#else
-         img += 25;
-#endif
-         y = ((mdouble)(img - 1001))/24.0L;
+      {  img++; y = ((mdouble)(img - 1001))/24.0L;
          pplane->setPlane(x + y*(x1 - x), y*y1, a + y*(b - a), 0.0L);
          pplane->draw(f, 1, themode);
          text = trUtf8("Please confirm that the image is drawn completely.");
          if (img == 1025) text += trUtf8("\n\nExpect a short freezing ...");
-         dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+         dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
          connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
          if (!dialog->exec()) return;
          if (ftype == 15)
@@ -2777,7 +2973,7 @@ void QmnShell::setFile(QAction *act)
                }
             }
          }
-         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::white, 10) > 1
+         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::darkMagenta, 10) > 1
              || F->find(1, k, p, x1, y1)) continue;
          if (ftype == 35)
          {  if (3ULL*D0 == 7ULL*N0 || 4ULL*D0 == 7ULL*N0
@@ -2824,18 +3020,7 @@ void QmnShell::setFile(QAction *act)
          { pplane->drawLine(x0, y0, x1, y1, Qt::green); x0 = x1; y0 = y1; }
          if (!K) npf = (n <= 1850 ? 5 : 15);
          if (!(n % npf))
-         {  img++; name = QString("%1.png").arg(img); setWindowTitle(name);
-#ifdef SaveFramesOfVeinsLimbs
-            pplane->savePNG(name);
-#else
-            if (!(img % 25))
-            {  text = trUtf8("Drawn %1.png, do you want to continue?").arg(img);
-               dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
-               connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-               if (!dialog->exec()) break;
-            }
-#endif
-         }
+         { img++; name = QString("%1.png").arg(img); pplane->savePNG(name); }
       }
       img++; name = QString("%1.png").arg(img); setWindowTitle(name);
 #ifdef SaveFramesOfVeinsLimbs
@@ -2853,19 +3038,13 @@ void QmnShell::setFile(QAction *act)
       "the Airplane in family 5.3,\n"
       " 1/2 in family 5.6 with n_max even,\n"
       "5/14 in family 5.6 with n_max odd.\n"
-#ifdef SaveFramesOfVeinsLimbs
       "Video frames are saved in the current directory\n%1\n"
       "Make the video with the shell command\n"
       "ffmpeg -start_number 1001 -i %04d.png -c:v libx264 "
       "-pix_fmt yuv420p out.mp4\n"
       "Note: the current directory is changed with F6 ... F8."
-#else
-      "Note: if you want to save video frames for this, remove the\n"
-      "two slashes before #define SaveFramesOfVeinsLimbs\n"
-      "at the beginning of qmnshell.cpp and recompile."
-#endif
       ).arg(QDir::toNativeSeparators(QDir::currentPath()));
-      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
       if (!dialog->exec()) return;
       if (ftype == 15)
@@ -2874,8 +3053,8 @@ void QmnShell::setFile(QAction *act)
       { uint m; pplane->getNmax(m); if (m & 1) ftype = 65; }
       mndynamics *F = new mndlbrot(2);
       pplane->setNmax((ftype == 5 || ftype == 15) ? 2000 : 500);
-      mandelPathMate *Mpath = new mandelPathMate(0, 60);
-      mandelPathTwo *MMpath = new mandelPathTwo(0, 60);
+      mndPathMate *Mpath = new mndPathMate(0, 60);
+      mndPathTwo *MMpath = new mndPathTwo(0, 60);
       int img = 1000, k, p, n, j = 1, K, npf;
       qulonglong N0, D0, N, D, N1;
       if (act == limbAct3)
@@ -2926,7 +3105,7 @@ void QmnShell::setFile(QAction *act)
          pplane->draw(f, 1, themode);
          text = trUtf8("Please confirm that the image is drawn completely.");
          if (img == 1025) text += trUtf8("\n\nExpect a short freezing ...");
-         dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+         dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
          connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
          if (!dialog->exec()) return;
          if (ftype == 5 || ftype == 15)
@@ -2971,7 +3150,7 @@ void QmnShell::setFile(QAction *act)
                { p++; N1 <<= 1; if (N1 >= D) N1 -= D; if (N1 == N) break; }
             }
          }
-         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::white, 10) > 1
+         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::darkMagenta, 10) > 1
              || F->find(1, k, p, x1, y1)) continue;
          if (ftype == 5 || ftype == 15)
          {  if (3ULL*D0 == 15ULL*N0 || 4ULL*D0 == 15ULL*N0)
@@ -3034,93 +3213,102 @@ void QmnShell::setFile(QAction *act)
          if (j) { pplane->drawLine(x0, y0, x1, y1, Qt::red); x0 = x1; y0 = y1; }
          if (!K) npf = (n <= 1614 ? 6 : 20);
          if (!(n % npf))
-         {  img++; name = QString("%1.png").arg(img); setWindowTitle(name);
-#ifdef SaveFramesOfVeinsLimbs
-            pplane->savePNG(name);
-#else
-            if (!(img % 25))
-            {  text = trUtf8("Drawn %1.png, do you want to continue?").arg(img);
-               dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
-               connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-               if (!dialog->exec()) break;
-            }
-#endif
-         }
+         { img++; name = QString("%1.png").arg(img);  pplane->savePNG(name); }
       }
-      img++; name = QString("%1.png").arg(img); setWindowTitle(name);
-#ifdef SaveFramesOfVeinsLimbs
-      pplane->savePNG(name);
-#endif
+      img++; name = QString("%1.png").arg(img); pplane->savePNG(name);
       delete F; delete MMpath; delete Mpath;
       if (ftype == 65) ftype = 45; if (ftype == 5) ftype = 15;
    }//veinAct3
 
-      /*/parameter mating curve for n = nmax
-      mndynamics *F = new mndlbrot(2); int k, p; mdouble x0 = 0.0, y0 = -4.0;
-      uint n; pplane->getNmax(n);
-      pplane->draw(f, 0, themode); pplane->replaceColor(0, 4);
-      qulonglong MM, NN, M, N = 3ULL << 14;
-      for (M = 1ULL; M <= N >> 1; M++)
-      {  MM = M; NN = N; p = mndAngle::normalize(MM, NN, k);
-         if (!k || dplane->newtonRay(1, MM, NN, x, y, 5, Qt::white, 10) > 1
-           || F->find(1, k, p, x, y)
-           || mpath->mating(k, p, x, y)
-           || mpath->sequence(n, 25, 25, f->pathInfo)
-           || mpath->step(x, y) ) continue;
-         if (y0 > -4.0)
-         {  pplane->drawLine(x0, y0, x, y, Qt::blue);
-            pplane->drawLine(x0, -y0, x, -y, Qt::blue);
+   /*if (act == slowmateAct && ftype == 15) //5 steps from nmax, and both planes
+   {  int img, i, k, p = 6, P, sym = 0; const int imax = 32;
+      mdouble rc, ic, rd, id, x[imax], y[imax]; QmnPlane plane[2*imax];
+      qulonglong N1, N2, N, D, N0, D0; QString name = QString("1025.png");
+      if (ftype == 5)
+      { P = 0; rc = 0.0L; ic = 0.0L; rd = 4.5L; id = 0.0L; sym = 1; } 
+      if (ftype == 15)
+      { P = 1; rc = 1.0L; ic = 0.0L; rd = 2.05L; id = 0.0L; sym = 1; } 
+      if (ftype == 25)
+      {  P = 2; sym = 1; x[0] = -1.0L; y[0] = 0.0L;
+         rc = 0.0L; ic = 0.0L; rd = 2.5L; id = 0.0L;
+      }
+      if (ftype == 35)
+      {  P = 3; if (dplane->getType() < 0) //Rabbit
+         {  x[0] = -0.122561166876654L; y[0] = 0.744861766619744L; //R
+            rc = -0.33L; ic = 0.7L; rd = 1.41L; id = 0.0L;
          }
-         x0 = x; y0 = y; if (!(M % 1024ULL)) pplane->repaint();
-      } //*/
-      /*/parameter mating vid
-      mndynamics *F = new mndlbrot(2); int k, p; mdouble x0 = 0.0, y0 = 0.0;
-      qulonglong MM, NN, M, N = 3ULL << 16;
-      for (imgno = 1001; imgno <= 1500; imgno++)
-      {  int fr = imgno % 25; if (!fr) fr = 25;
-         int n = (49 - 1000 + imgno)/25; y0 = -9.0;
-         pplane->draw(f, 0, themode); pplane->replaceColor(0, 4);
-         for (M = 1ULL; M <= N >> 1; M++)
-         {  MM = M; NN = N; p = mndAngle::normalize(MM, NN, k);
-            if (!k || dplane->newtonRay(1, MM, NN, x, y, 5, Qt::white, 10) > 1
-              || F->find(1, k, p, x, y)
-              || mpath->mating((k > n ? n + 1 : k), p, x, y)
-              || mpath->sequence(n, fr, 25, f->pathInfo)
-               ) continue;
-            x = f->pathInfo->rc[n]; y = f->pathInfo->ic[n];
-            if (y0 > -9.0)
-            {  pplane->drawLine(x0, y0, x, y, Qt::blue);
-               pplane->drawLine(x0, -y0, x, -y, Qt::blue);
+         else
+         {   x[0] = -1.754877666246693L; y[0] = 0.0L; //A
+             rc = 0.781L; ic = 0.0L; rd = 2.0L; id = 0.0L; sym = 1;
+             //rc = 0.6612L; ic = 0.2265L; rd = 0.0965L; id = 0.0L; //3/8-limb
+             //rc = 0.7178L; ic = 0.0273L; rd = 0.1843L; id = 0.0L; //2/5-limb
+         }
+      }
+      pplane->setPlane(rc, ic, rd, id);
+      if (!pplane->loadPNG(name))
+      {  draw(redrawAct); QmnUIntDialog *d0 = new QmnUIntDialog(trUtf8(
+         "Please check nmax and set grayscale, save as 1025.png, hit d again."
+         ), 0, 0, 0u, 4, this, 0);
+         connect(d0, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+         d0->exec(); return;
+      }
+      for (i = 0; i < 2*imax; i++)
+      { plane[i].resize(thesize, thesize); plane[i].setPlane(rc, ic, rd, id); }
+      uint n = 10u, m = 5u; QmnUIntDialog *d1 = new QmnUIntDialog(trUtf8(
+         "Enter the preperiod, 5 ... 25 :"), &n, &m, 25u, 4, this, 1);
+      connect(d1, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!d1->exec()) return; k = n;
+      D = 63ULL << k; N1 = 1ULL; N2 = D - N1; //full
+      //N1 = (73ULL*D)/255ULL + 1ULL; N2 = (74ULL*D)/255ULL; //3/8
+      //N1 = (9ULL*D)/31ULL + 1ULL; N2 = (10ULL*D)/31ULL; //2/5
+      if (sym) N2 = D >> 1;
+      mndynamics *F = new mndlbrot(2); mandelPath *mpm;
+      if (P == 1) mpm = new mandelMate1();
+      else mpm = new mandelMating();
+      if (P > 1) mpm->setMating(0, P, x[0], y[0], 1); //mpm->setR(exp(1.0L));
+      uint IMG; pplane->getNmax(IMG);
+      for (img = IMG; img <= 1050; img += 5)
+      {  name = QString("1025.png");
+         for (i = 0; i < 2*imax; i++) plane[i].loadPNG(name);
+         for (N = N1; N <= N2; N++)
+         {  N0 = N; D0 = D; k = 0;
+            while (!(N0 & 1ULL) && !(D0 & 1ULL)) { N0 >>= 1; D0 >>= 1; }
+            while (!(D0 & 1ULL)) { k++; D0 >>= 1; }
+            if (!k || dplane->newtonRay(1, N, D, rc, ic, 5, Qt::white, 10) > 1
+              || F->find(1, k, p, rc, ic) ) continue;
+            if (P) mpm->setMating(k, p, rc, ic, 0);
+            else mpm->setMating(k, p, rc, ic, 1);
+            if (!P)
+            {  if (k <= 1) continue; //here N/D <= 1/2 :
+               if (dplane->newtonRay(1, N, D>>1, rc, ic, 5, Qt::white, 10) > 1
+                 || F->find(1, k - 1, p, rc, ic) ) continue;
+               mpm->setMating(k - 1, p, rc, -ic, 0);
             }
-            x0 = x; y0 = y; if (!(M % 2048ULL)) pplane->repaint();
-         }
-         QString name = QString("%1.png").arg(imgno);
-         setWindowTitle(name); pplane->savePNG(name);
-      }//*/
-      /*/parameter mating vid last part finer
-      mndynamics *F = new mndlbrot(2); int k, p; mdouble x0 = 0.0, y0 = 0.0;
-      qulonglong MM, NN, M, N = 3ULL << 22;
-      for (imgno = 1501; imgno <= 1700; imgno += 25)
-      {  int fr = imgno % 25; if (!fr) fr = 25;
-         int n = (49 - 1000 + imgno)/25; y0 = -9.0;
-         pplane->draw(f, 0, themode); pplane->replaceColor(0, 4);
-         for (M = 1ULL + (10ULL*N)/31ULL; M <= N/3ULL; M++)
-         {  MM = M; NN = N; p = mndAngle::normalize(MM, NN, k);
-            if (!k || dplane->newtonRay(1, MM, NN, x, y, 5, Qt::white, 10) > 1
-              || F->find(1, k, p, x, y)
-              || mpath->mating((k > n ? n + 1 : k), p, x, y)
-              || mpath->sequence(n, fr, 25, f->pathInfo)
-               ) continue;
-            x = f->pathInfo->rc[n]; y = f->pathInfo->ic[n];
-            if (y0 > -9.0)
-            {  pplane->drawLine(x0, y0, x, y, Qt::blue);
-               pplane->drawLine(x0, -y0, x, -y, Qt::blue);
+            mpm->init((img - 1025)*0.040001L);
+            for (i = 0; i < imax; i++)
+            {  mpm->getParameters(rc, ic, rd, id, P);
+               if (P == 1 && dplane->getType() < 0)
+               { rd = rc*rc + ic*ic; rc /= rd; ic = -ic/rd; }
+               if (N > N1)
+               {  plane[i].drawLine(x[i], y[i], rc, ic, Qt::red);
+                  if (sym) plane[i].drawLine(x[i], -y[i], rc, -ic, Qt::red);
+                  double w = x[i]*x[i] + y[i]*y[i]; x[i] /= w; y[i] /= -w;
+                  w = rc*rc + ic*ic;
+                  plane[imax  + i].drawLine(x[i], y[i], rc/w, -ic/w, Qt::red);
+                  plane[imax  + i].drawLine(x[i], -y[i], rc/w, ic/w, Qt::red);
+               }
+               x[i] = rc; y[i] = ic; if (i < imax - 1) mpm->step(rc, ic);
+               if (sym && P && i >= (P == 2 ? 12 : 8) && 3ULL*N >= D) break;
             }
-            x0 = x; y0 = y; if (!(M % 2048ULL)) pplane->repaint();
          }
-         QString name = QString("%1.png").arg(imgno);
-         setWindowTitle(name); pplane->savePNG(name);
-      }//*/
+         for (i = 0; i < imax; i++)
+         {  name = QString("p/%1.png").arg(img + 25*i); plane[i].savePNG(name);
+            name = QString("d/%1.png").arg(img + 25*i);
+            plane[i+imax].savePNG(name);
+         }
+      }
+      delete mpm; delete F; return;
+   }//modified 15*/
 
    if (act == limbAct4)
    {  QString name, text = trUtf8(
@@ -3129,19 +3317,13 @@ void QmnShell::setFile(QAction *act)
       "anti-self in family 5.1 with n_max odd,\n"
       "the Airplane in family 5.3 with different\n"
       "  parts for n_max even or odd.\n"
-#ifdef SaveFramesOfVeinsLimbs
       "Video frames are saved in the current directory\n%1\n"
       "Make the video with the shell command\n"
       "ffmpeg -start_number 1001 -i %04d.png -c:v libx264 "
       "-pix_fmt yuv420p out.mp4\n"
       "Note: the current directory is changed with F6 ... F8."
-#else
-      "Note: if you want to save video frames for this, remove the\n"
-      "two slashes before #define SaveFramesOfVeinsLimbs\n"
-      "at the beginning of qmnshell.cpp and recompile."
-#endif
       ).arg(QDir::toNativeSeparators(QDir::currentPath()));
-      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+      QmnUIntDialog *dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
       connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
       if (!dialog->exec()) return;
       if (ftype == 15)
@@ -3150,10 +3332,10 @@ void QmnShell::setFile(QAction *act)
       { uint m; pplane->getNmax(m); if (m & 1) ftype = 30; }
       mndynamics *F = new mndlbrot(2);
       pplane->setNmax((ftype == 5 || ftype == 15) ? 2000 : 500);
-      mandelPathMate *Mpath = new mandelPathMate(0, 60);
+      mndPathMate *Mpath = new mndPathMate(0, 60);
       int img = 1000, k, p, n, j = 1, K, npf;
       qulonglong N0, D0, N, D, N1;
-      p = 6; K = 16; N0 = 0ULL; D0 = 63ULL << K; N1 = 21ULL << K;
+      p = 6; K = 18; N0 = 0ULL; D0 = 63ULL << K; N1 = 21ULL << K;
          npf = (1 << K)/37 + 1; //steps per frame, about 800 frames
       mdouble a, b, x, y, x0, y0, x1, y1;
       //first image (x, 0, a, 0), last (x1, y1, b, 0), mating start x0, y0 
@@ -3169,21 +3351,26 @@ void QmnShell::setFile(QAction *act)
       {  x = 0.5703L; x1 = 0.69153L; y1 = 0.38915L; a = 2.2465L; b = 0.55240L;
          *themode = 1; x0 = 0.8445944976806L; y0 = 0.8921881866455L;
          Mpath->mating(0, 3, -1.754877666246693L, 0.0L, logTen, 1);
-         N0 = 18ULL << K; D0 = 63ULL << K; N1 = 21ULL << K;
+         K = 21; N0 = 18ULL << K; D0 = 63ULL << K; N1 = 21ULL << K;
          npf = (1 << K)/257 + 1;
+         /*/for zoom around indirect capture component
+         x1 = -0.248828125L; y1= 0.6552734375L; b = 0.2L;
+         K = 20; N0 = 805ULL << (K - 6); D0 = 63ULL << K;
+         N1 = 1045ULL << (K - 6); npf = (1 << K)/207 + 1;//*/
          /*/for zoom around one-sided capture component
-         x1 = 0.692865L; y1 = 0.185015L; b = 0.10513L;
-         K = 18; N0 = 18ULL << K; D0 = 63ULL << K;
+         x1 = 0.6879L; y1= 0.2040L; b = 0.125L;
+         K = 21; N0 = 18ULL << K; D0 = 63ULL << K;
          N1 = N0 + (63ULL << (K - 7)); npf = (1 << K)/1638 + 1;//*/
       }
       if (ftype == 30)
       {  x = 0.5703L; x1 = 1.79846L; y1 = 0.31250L; a = 2.2465L; b = 0.96892L;
          *themode = 1; x0 = 1.474L; y0 = 0.0L;
          Mpath->mating(0, 3, -1.754877666246693L, 0.0L, logTen, 1);
-         N0 = 0ULL; D0 = 63ULL << K; N1 = 9ULL << K; npf = (1 << K)/86 + 1;
+         K = 21;
+         D0 = 63ULL << K; N0 = D0/60ULL; N1 = 9ULL << K; npf = (1 << K)/85 + 1;
          /*/for zoom around 3/8-limb
-         x0 = 0.74536L; y0 = 0.27374L; x1 = 0.658369L; y1 = 0.228381L; b = 0.10513L;
-         p = 8; K = 17; N0 = 73ULL << K; D0 = 255ULL << K;
+         x0 = 0.74536L; y0 = 0.27374L; x1 = 0.6879L; y1= 0.2040L; b = 0.125L;
+         p = 8; K = 20; N0 = 73ULL << K; D0 = 255ULL << K;
          N1 = 74ULL << K; npf = (1 << K)/756 + 1;//*/
       }
       while (img < 1025)
@@ -3198,7 +3385,7 @@ void QmnShell::setFile(QAction *act)
          pplane->draw(f, 1, themode);
          text = trUtf8("Please confirm that the image is drawn completely.");
          if (img == 1025) text += trUtf8("\n\nExpect a short freezing ...");
-         dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
+         dialog = new QmnUIntDialog(text, 0, 0, 0u, 4, this);
          connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
          if (!dialog->exec()) return;
          if (ftype == 5 || ftype == 15)
@@ -3219,17 +3406,16 @@ void QmnShell::setFile(QAction *act)
          while (!(N & 1ULL) && !(D & 1ULL))
          { k--; N >>= 1; D >>= 1; }
          if (!k) continue;
-         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::white, 10) > 1
+         if (pplane->newtonRay(1, N, D, x1, y1, 5, Qt::darkMagenta, 10) > 1
              || F->find(1, k, p, x1, y1)) continue;
          if ((ftype == 5 && img <= 30) || (ftype == 15 && img <= 30)) { x1 = x0; y1 = y0; }
          else if (ftype == 5 || ftype == 15)
          {  for (j = 0; j <= 1; j++) Mpath->mating(k, p, x1, y1, logTen, j);
             for (j = 1; j <= 60; j++)
-            if (Mpath->step(x1, y1)) { j = 0; break; }
+               if (Mpath->step(x1, y1)) { j = 0; break; }
             if (ftype == 5) { x = x1*x1 + y1*y1; x1 /= x; y1 /= x; }
          }
-         if (ftype == 30 && img <= 1050 && p < 8) { x1 = x0; y1 = y0; } //inaccurate
-         else if (ftype >= 30)
+         if (ftype >= 30)
          {  Mpath->mating(k, p, x1, y1, logTen, 0);
             for (j = 1; j <= 60; j++)
             if (Mpath->step(x1, y1)) { j = 0; break; }
@@ -3252,115 +3438,255 @@ void QmnShell::setFile(QAction *act)
             x0 = x1; y0 = y1;
          }
          if (!(n % npf))
-         {  img++; name = QString("%1.png").arg(img); setWindowTitle(name);
-#ifdef SaveFramesOfVeinsLimbs
-            pplane->savePNG(name);
-#else
-            if (!(img % 25))
-            {  text = trUtf8("Drawn %1.png, do you want to continue?").arg(img);
-               dialog = new QmnUIntDialog(text, 0, 0, 0u, 7, this);
-               connect(dialog, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-               if (!dialog->exec()) break;
-            }
-#endif
-         }
+         { img++; name = QString("%1.png").arg(img); pplane->savePNG(name); }
       }
-      img++; name = QString("%1.png").arg(img); setWindowTitle(name);
-#ifdef SaveFramesOfVeinsLimbs
-      pplane->savePNG(name);
-#endif
+      //pplane->drawLine(x0, y0, 0.74536L, 0.27374L, Qt::red);
+      img++; name = QString("%1.png").arg(img); pplane->savePNG(name);
       delete F; delete Mpath;
       if (ftype == 30) ftype = 35; if (ftype == 5) ftype = 15;
    }//limbAct4
 
+   if (act == slowantiAct)
+   {  int img, i, k, P = -1, sym = 0; const int imax = 32;
+      mdouble rc, ic, rd, id, x[imax], y[imax]; QmnPlane plane[imax];
+      qulonglong N1, N2, N, D; QString name = QString("1025.png");
+      if (ftype == 5)
+      {  P = 0; sym = 1; rc = 0.0L; ic = 0.0L; rd = 4.5L; id = 0.0L;
+         if (dplane->getType() < 0) { rc = 0.0L; rd = 8.0L; }
+      }
+      if (ftype == 25)
+      {  P = 2; sym = 1; rc = 0.0L; ic = 0.0L; rd = 2.5L; id = 0.0L;
+         if (dplane->getType() < 0) { rc = 0.8L; rd = 3.8L; }
+      }
+      if (P < 0) return;
+      pplane->setPlane(rc, ic, rd, id);
+      if (!pplane->loadPNG(name))
+      {  draw(redrawAct); QmnUIntDialog *d0 = new QmnUIntDialog(trUtf8(
+         "Video frames of slow parameter anti-mating in family 5.0 or 5.2:\n\n"
+         "There is no 1025.png in the current directory\n%1 .\n"
+         "Redraw the given part with appropriate nmax and set grayscale,\n"
+         "save as 1025.png in an appropriate directory, then hit Ctrl+d again."
+         ).arg(QDir::toNativeSeparators(QDir::currentPath())),
+         0, 0, 0u, 4, this, 0);
+         connect(d0, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+         d0->exec(); return;
+      }
+      for (i = 0; i < imax; i++)
+      { plane[i].resize(thesize, thesize); plane[i].setPlane(rc, ic, rd, id); }
+      uint n = 8u, m = 5u; QmnUIntDialog *d1 = new QmnUIntDialog(trUtf8(
+      "Video frames of slow parameter anti-mating in family 5.0 or 5.2:\n"
+      "1026.png ... 1825.png are saved in the current directory\n%1 .\n"
+      "Make the video with the shell command\n"
+      "ffmpeg -start_number 1026 -i %04d.png -c:v libx264 "
+      "-pix_fmt yuv420p out.mp4\n"
+      "Enter the preperiod, 5 ... 15, and expect some freezing:"
+      ).arg(QDir::toNativeSeparators(QDir::currentPath())),
+         &n, &m, 15u, 4, this, 1);
+      connect(d1, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!d1->exec()) return; k = n; mndynamics *F; mandelPath *mpm;
+      if (!P)
+      {  D = 3ULL << (2*k - 1); N1 = 1ULL; N2 = D/6ULL;
+         F = new mndmulti(4); mpm = new mandelMate0();
+      }
+      if (P == 2)
+      {  D = 3ULL << 2*k; N1 = 1ULL; N2 = D/6ULL; //limb from 1/12 to 1/6
+         F = new mandelQPPQ(2); mpm = new mandelMate2();
+      }
+      /*for (N = N1; N <= N2; N += 2ULL)
+      {  rd = rc; id = ic;
+         if (F->mandelRay(1, -150, N, D, &rc, &ic) < 0
+             || F->find(1, k, p, rc, ic) || rc*rc + ic*ic < 0.54L)
+         { rc = rd; ic = id; dplane->setPoint(0, N);continue; }
+         if (mpm->setAnti(2*k - 1, 2*p,
+            rc*(rc*rc - 3.0L*ic*ic), (3.0L*rc*rc - ic*ic)*ic))
+         { rc = rd; ic = id; dplane->setPoint(N, 0);continue; }
+         for (i = 1; i <= imax; i++) mpm->step(rc, ic);
+         if (rc < -1.60L) dplane->setPoint(rc, N);
+         if (N == N1) continue;
+         pplane->drawLine(rd, id, rc, ic, Qt::red);
+         if (sym) pplane->drawLine(rd, -id, rc, -ic, Qt::red);
+      }//*/
+      for (img = 1026; img <= 1050; img++)
+      {  name = QString("1025.png");
+         for (i = 0; i < imax; i++) plane[i].loadPNG(name);
+         for (N = N1; N <= N2; N += 2ULL)
+         {  if (F->mandelRay(1, -150, N, D, &rc, &ic) < 0
+             || F->find(1, k, 1, rc, ic) || rc*rc + ic*ic < 0.22L
+             || mpm->setAnti(2*k - P/2, 2,
+                  rc*(rc*rc - 3.0L*ic*ic), (3.0L*rc*rc - ic*ic)*ic))
+               continue;
+            mpm->init((img - 1025)*0.040001L);
+            for (i = 0; i < imax; i++)
+            {  mpm->getParameters(rc, ic, rd, id, P);
+               if (N > N1)
+               {  plane[i].drawLine(x[i], y[i], rc, ic, Qt::red);
+                  if (sym) plane[i].drawLine(x[i], -y[i], rc, -ic, Qt::red);
+               }
+               x[i] = rc; y[i] = ic; if (i < imax - 1) mpm->step(rc, ic);
+            }
+         }
+         for (i = 0; i < imax; i++)
+         { name = QString("%1.png").arg(img + 25*i); plane[i].savePNG(name); }
+      }
+      delete mpm; delete F;
+   }
+
+   if (act == slowmateAct)
+   {  int img, i, k, p = 6, P = -1, sym = 0; const int imax = 32;
+      mdouble rc, ic, rd, id, x[imax], y[imax]; QmnPlane plane[imax];
+      qulonglong N1, N2, N, D, N0, D0; QString name = QString("1025.png");
+      if (ftype == 5)
+      { P = 0; rc = 0.0L; ic = 0.0L; rd = 4.5L; id = 0.0L; sym = 1; } 
+      if (ftype == 15)
+      { P = 1; rc = 1.0L; ic = 0.0L; rd = 2.05L; id = 0.0L; sym = 1; } 
+      if (ftype == 25)
+      {  P = 2; sym = 1; x[0] = -1.0L; y[0] = 0.0L;
+         rc = 0.0L; ic = 0.0L; rd = 2.5L; id = 0.0L;
+      }
+      if (ftype == 35)
+      {  P = 3; if (dplane->getType() < 0) //Rabbit
+         {  x[0] = -0.122561166876654L; y[0] = 0.744861766619744L; //R
+            rc = -0.33L; ic = 0.7L; rd = 1.41L; id = 0.0L;
+         }
+         else
+         {   x[0] = -1.754877666246693L; y[0] = 0.0L; //A
+             rc = 0.781L; ic = 0.0L; rd = 2.0L; id = 0.0L; sym = 1;
+             //rc = 0.6612L; ic = 0.2265L; rd = 0.0965L; id = 0.0L; //3/8-limb
+             //rc = 0.7178L; ic = 0.0273L; rd = 0.1843L; id = 0.0L; //2/5-limb
+         }
+      }
+      if (P < 0) return;
+      pplane->setPlane(rc, ic, rd, id);
+      if (!pplane->loadPNG(name))
+      {  draw(redrawAct); QmnUIntDialog *d0 = new QmnUIntDialog(trUtf8(
+         "Video frames of slow parameter mating in family\n"
+         "5.0 with \xce\xb8 v -2\xce\xb8,\n"
+         "self-mating in family 5.1, self anti-mating with sphere F3,\n"
+         "mating with the Basilica in 5.2, and\n"
+         "Airplane in family 5.3, Rabbit with sphere F3.\n\n"
+         "There is no 1025.png in the current directory\n%1 .\n"
+         "Redraw the given part with appropriate nmax and set grayscale,\n"
+         "save as 1025.png in an appropriate directory, then hit d again."
+         ).arg(QDir::toNativeSeparators(QDir::currentPath())),
+         0, 0, 0u, 4, this, 0);
+         connect(d0, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+         d0->exec(); return;
+      }
+      for (i = 0; i < imax; i++)
+      { plane[i].resize(thesize, thesize); plane[i].setPlane(rc, ic, rd, id); }
+      uint n = 10u, m = 5u; QmnUIntDialog *d1 = new QmnUIntDialog(trUtf8(
+      "Video frames of slow parameter mating in family\n"
+      "5.0 with \xce\xb8 v -2\xce\xb8,\n"
+      "self-mating in family 5.1, self anti-mating with sphere F3,\n"
+      "mating with the Basilica in 5.2, and\n"
+      "Airplane in family 5.3, Rabbit with sphere F3.\n\n"
+      "1026.png ... 1825.png are saved in the current directory\n%1 .\n"
+      "Make the video with the shell command\n"
+      "ffmpeg -start_number 1026 -i %04d.png -c:v libx264 "
+      "-pix_fmt yuv420p out.mp4\n"
+      "Enter the preperiod, 5 ... 25, and expect some freezing:"
+      ).arg(QDir::toNativeSeparators(QDir::currentPath())),
+         &n, &m, 25u, 4, this, 1);
+      connect(d1, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!d1->exec()) return; k = n;
+      D = 63ULL << k; N1 = 1ULL; N2 = D - N1; //full
+      //N1 = (73ULL*D)/255ULL + 1ULL; N2 = (74ULL*D)/255ULL; //3/8
+      //N1 = (9ULL*D)/31ULL + 1ULL; N2 = (10ULL*D)/31ULL; //2/5
+      if (sym) N2 = D >> 1;
+      mndynamics *F = new mndlbrot(2); mandelPath *mpm;
+      if (P == 0) mpm = new mandelMating();
+      if (P == 1) mpm = new mandelMate1();
+      if (P == 2) mpm = new mandelMate2();
+      if (P == 3)
+      { mpm = new mandelMating(); mpm->setMating(0, P, x[0], y[0], 1); }
+      for (img = 1026; img <= 1050; img++)
+      {  name = QString("1025.png");
+         for (i = 0; i < imax; i++) plane[i].loadPNG(name);
+         for (N = N1; N <= N2; N++)
+         {  N0 = N; D0 = D; k = 0;
+            while (!(N0 & 1ULL) && !(D0 & 1ULL)) { N0 >>= 1; D0 >>= 1; }
+            while (!(D0 & 1ULL)) { k++; D0 >>= 1; }
+            if (!k || F->mandelRay(1, -150, N, D, &rc, &ic) < 0
+                || F->find(1, k, p, rc, ic) ) continue;
+            if (P) mpm->setMating(k, p, rc, ic, 0);
+            else
+            {  mpm->setMating(k, p, rc, ic, 1); //here N/D <= 1/2 :
+               if (k <= 1 || F->mandelRay(1, -150, N, D >> 1, &rc, &ic) < 0
+                   || F->find(1, k - 1, p, rc, ic) ) continue;
+               mpm->setMating(k - 1, p, rc, -ic, 0);
+            }
+            mpm->init((img - 1025)*0.040001L);
+            for (i = 0; i < imax; i++)
+            {  mpm->getParameters(rc, ic, rd, id, P);
+               if (P == 1 && dplane->getType() < 0)
+               { rd = rc*rc + ic*ic; rc /= rd; ic = -ic/rd; }
+               if (N > N1)
+               {  plane[i].drawLine(x[i], y[i], rc, ic, Qt::red);
+                  if (sym) plane[i].drawLine(x[i], -y[i], rc, -ic, Qt::red);
+               }
+               x[i] = rc; y[i] = ic; if (i < imax - 1) mpm->step(rc, ic);
+               if (sym && P && i >= (P == 2 ? 12 : 8) && 3ULL*N >= D) break;
+            }
+         }
+         for (i = 0; i < imax; i++)
+         { name = QString("%1.png").arg(img + 25*i); plane[i].savePNG(name); }
+      }
+      delete mpm; delete F;
+   }//*/
+
+   /*if (act == slowmateAct) //segmentation fault ...
+   {  int ilist[4]; ilist[3] = thesize; //P, sym, imgno, size
+      mdouble mdlist[3]; qulonglong qulist[3]; //D, N1, N2
+      QString name = QString("1025.png");
+      if (ftype == 5)
+      {  ilist[0] = 0; ilist[1] = 1;
+         mdlist[1] = 0.0L; mdlist[2] = 0.0L; mdlist[0] = 4.5L;
+      } 
+      if (ftype == 15)
+      {  ilist[0] = 1; ilist[1] = (dplane->getType() < 0 ? -1 : 1); //anti
+         mdlist[1] = 1.0L; mdlist[2] = 0.0L; mdlist[0] = 2.05L;
+      } 
+      if (ftype == 25)
+      {  ilist[0] = 2; ilist[1] = 1;
+         mdlist[1] = 0.0L; mdlist[2] = 0.0L; mdlist[0] = 2.5L;
+      }
+      if (ftype == 35)
+      {  ilist[0] = 3; if (dplane->getType() < 0) //Rabbit
+         {  ilist[1] = -1;
+            mdlist[1] = -0.33L; mdlist[2] = 0.7L; mdlist[0] = 1.41L;
+         }
+         else
+         {  ilist[1] = 0; //Airplane
+            mdlist[1] = 0.781L; mdlist[2] = 0.0L; mdlist[0] = 2.0L; ilist[1]=1;
+          //mdlist[1] = 0.6612L; mdlist[2] = 0.2265L; mdlist[0] = 0.0965L;//3/8
+          //mdlist[1] = 0.7178L; mdlist[2] = 0.0273L; mdlist[0] = 0.1843L;//2/5
+         }
+      }
+      pplane->setPlane(mdlist[1], mdlist[2], mdlist[0], 0.0L);
+      if (!pplane->loadPNG(name))
+      {  draw(redrawAct); QmnUIntDialog *d0 = new QmnUIntDialog(trUtf8(
+         "Please check nmax and set grayscale, save as 1025.png, hit d again."
+         ), 0, 0, 0u, 4, this, 0);
+         connect(d0, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+         d0->exec(); return;
+      }
+      uint n = 10u, m = 5u; QmnUIntDialog *d1 = new QmnUIntDialog(trUtf8(
+         "Enter the preperiod, 5 ... 25 :"), &n, &m, 25u, 4, this, 1);
+      connect(d1, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
+      if (!d1->exec()) return;
+      qulist[0] = 63ULL << n; qulist[1] = 1ULL; qulist[2] = qulist[0] - 1ULL;
+      //N1 = (73ULL*D)/255ULL + 1ULL; N2 = (74ULL*D)/255ULL; //3/8
+      //N1 = (9ULL*D)/31ULL + 1ULL; N2 = (10ULL*D)/31ULL; //2/5
+      for (m = 0; m <= 4; m++)
+      {  ilist[2] = 1026 + 5*m; //if (mani[m]) delete mani[m];
+         mani[m] = new mandelSlow(this); mani[m]->init(ilist, mdlist, qulist);
+      }
+   }//*/
 }
 
-void QmnShell::help(QAction *act)
-{  if (act == helpAct) { helptabs->show(); helptabs->raise(); }
-   if (act == aboutAct)
-   {  QMessageBox mb(QMessageBox::NoIcon, trUtf8("About Mandel"), trUtf8(
-      "<style type=\"text/css\">a:link { text-decoration: none; }</style>"
-      "<b>Mandel 5.18</b> of May 28, 2023.<br>"
-      "Copyright &copy; Wolf Jung"
-      "<p>This program comes with no warranty.<br>"
-      "It may be redistributed and modified under<br>"
-      "the terms of the <a href=\"http://www.gnu.org/copyleft/gpl.html\">"
-      "GNU General Public Licence</a>."
-      "<p>The latest version and the source code are<br>"
-      "available from "
-      "<a href=\"http://www.mndynamics.com\">www.mndynamics.com</a> ."
-      "<p>This program employs the cross-platform C++<br>"
-      "toolkit Qt from Qt Group. See "
-      "<a href=\"http://www.qt.io/download-open-source/\">"
-      "www.qt.io/download-open-source/</a> ."),
-      QMessageBox::Ok, this);
-      mb.setIconPixmap(QPixmap((const char **)(QmnIcon_xpm64)));
-      mb.exec();
-   }
-   if (act == demoActs[0]) //see updateActions and F1
-   {  QmnDemo *demo = new QmnDemoDS(trUtf8(
-      "Mandel demo 0: real iteration"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[1])
-   {  QmnDemo *demo = new QmnDemoDS(trUtf8(
-      "Mandel demo 1: dynamics and sets"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[2])
-   {  QmnDemo *demo = new QmnDemoPB(trUtf8(
-      "Mandel demo 2: periodic points and bifurcations"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[3])
-   {  QmnDemo *demo = new QmnDemoER(trUtf8(
-      "Mandel demo 3: external rays"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[4])
-   {  QmnDemo *demo = new QmnDemoCC(trUtf8(
-      "Mandel demo 4: combinatorics"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[5])
-   {  QmnDemo *demo = new QmnDemoRN(trUtf8(
-      "Mandel demo 5: renormalization"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[6])
-   {  QmnDemo *demo = new QmnDemoAS(trUtf8(
-      "Mandel demo 6: asymptotic similarity at Misiurewicz points"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[7])
-   {  QmnDemo *demo = new QmnDemoLS(trUtf8(
-      "Mandel demo 7: local similarity"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[8])
-   {  QmnDemo *demo = new QmnDemoQC(trUtf8(
-      "Mandel demo 8: quasiconformal surgery"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[9]) //see updateActions and F1
-   {  QmnDemo *demo = new QmnDemo(trUtf8(
-      "Mandel demo 9: new families of functions"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-   if (act == demoActs[10])
-   {  QmnDemo *demo = new QmnDemoCZ(trUtf8(
-      "Mandel demo: Celia and Zach, a fairy tale"), 0);
-      connect(demo, SIGNAL(needHelp(int)), helptabs, SLOT(showPage(int)));
-      demo->showMaximized();
-   }
-}
+/*
+1/12 v 5/12 fix -(1+i)(1+sqrt0.5) = -1.7071067811865475244(1+i), d ~ 0.0017
+1/6 v 1/6 c = 0.25 +0.661437827766148 i  z = -0.5 +1.322875655532295 i, d ~ 0.014
+3/14 v 3/14: c = .5L + 1.3228756555322952953L i , cr fix = -c, d ~0.005
+53/60 v 29/60: a = (-1-i-sqrt(-4+2i)/2 = -0.742934135878323 -1.529085513635746 i, d ~ 0.025 
+*/

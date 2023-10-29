@@ -3,7 +3,7 @@
    mndtrigosiegel, mndexpo, mndtrigo, mndmatesiegel, mndmating, mndsingpert,
    mndherman, mndnewtonsiegel, mndnewton, mndcubicnewton, mndquarticnewton.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -416,7 +416,7 @@ void mandelMateSiegel::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 
 //////////////////////////////////////////////////////////////////////
 
-void mandelMating::iterate(mdouble &x, mdouble &y, int mode) const // = 0
+void mndMating::iterate(mdouble &x, mdouble &y, int mode) const // = 0
 {  if (mode > 0) { x = 0; y = 0; return; }
    mdouble w = x*x + y*y, a = A, b = B; uint upper = 0;
    if (0.99999 < w && w < 1.00001)
@@ -437,12 +437,12 @@ void mandelMating::iterate(mdouble &x, mdouble &y, int mode) const // = 0
    }
 }
 
-void mandelMating::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+void mndMating::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 {  if (!sg) { C = xmid; D = rewidth; return; }
    xmid = 0; rewidth = 2.5;
 }
 
-uint mandelMating::pixcolor(mdouble x, mdouble y)
+uint mndMating::pixcolor(mdouble x, mdouble y)
 {  if (sign > 0) return martyM(x, y, x, y, temp[1], 1);
    mdouble pw = temp[1], w = x*x + y*y, a = A, b = B;
    uint upper = 0, cl; if (w > 1.0) upper = 1;
@@ -459,7 +459,7 @@ uint mandelMating::pixcolor(mdouble x, mdouble y)
    return cl;
 }
 
-uint mandelMating::martyM(mdouble a, mdouble b, mdouble x, mdouble y,
+uint mndMating::martyM(mdouble a, mdouble b, mdouble x, mdouble y,
    mdouble pw, int sg) //static for other classes
 {  uint j; mdouble xp = 1.0, yp = 0, nz, nzp; //zp = 1
    for (j = 1; j <= /*maxiter*/150; j++)
@@ -475,32 +475,32 @@ uint mandelMating::martyM(mdouble a, mdouble b, mdouble x, mdouble y,
 
 //////////////////////////////////////////////////////////////////////
 
-void mandelBitransitive::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+void mandelV0::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble u = a - rb, v = b - ib, N = x*x - y*y + rb; y = 2.0*x*y + ib; x = N;
    N = x*x + y*y; if (N < 1e-100) { x = 1e100; return; } x /= N; y /= N;
    N = u*x + v*y; y = v*x - u*y; x = N + 1.0;
 }// (z^2 + c)/(z^2 + B)
 
-void mandelBitransitive::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
+void mandelV0::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    mdouble &x, mdouble &y) const
 {  mdouble u = a - rb, v = b - ib, w; // u + iv = A - B
    X--; w = X*X + Y*Y; if (w < 1e-100) { x = 1e100; return; }
    root((u*X + v*Y)/w - rb, (v*X - u*Y)/w - ib, x, y);
 }// sqrt( (A - Bz) / (z - 1) ) = sqrt( (A - Bz) / (z - 1) )
 
-void mandelBitransitive::iterate(mdouble &x, mdouble &y, int mode) const // = 0
+void mandelV0::iterate(mdouble &x, mdouble &y, int mode) const // = 0
 {  if (!mode) f(A, B, x, y);
    if (mode > 0) { x = 0; y = 0; }
    if (mode >= 0) return;
    inverse(A, B, x, y, x, y); if (mode == -2) { x = -x; y = -y; }
 }
 
-void mandelBitransitive::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+void mandelV0::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 {  if (!sg) { rb = xmid; ib = rewidth; return; }
    xmid = 0; rewidth = 3.0; if (sg > 0) rewidth = 4.5;
 }
 
-int mandelBitransitive::bifurcate(mdouble t, mdouble &a, mdouble & b) const
+int mandelV0::bifurcate(mdouble t, mdouble &a, mdouble & b) const
 {  if (rb*rb + ib*ib > 0.0) return 0;
    int per = 1; if (a*a + b*b >= 16.0) per = 2;
    if (t <= -1.0) return per;
@@ -511,7 +511,7 @@ int mandelBitransitive::bifurcate(mdouble t, mdouble &a, mdouble & b) const
    return 1; // w = 2/(2 + rho) , c = w^3 - w^2
 } //bifurcate
 
-uint mandelBitransitive::pixcolor(mdouble x, mdouble y)
+uint mandelV0::pixcolor(mdouble x, mdouble y)
 {  if (sign < 0) return marty(A, B, x, y);
    uint cl1 = marty(x, y, 1.0, 0); if (rb*rb + ib*ib <= 0.0) return cl1;
    //bifu.locus of 0 blue, infinity red, intersection magenta, exterior is green
@@ -519,7 +519,7 @@ uint mandelBitransitive::pixcolor(mdouble x, mdouble y)
    if (cl2 & 1) return 5; else return 12;
 }
 
-uint mandelBitransitive::marty(mdouble a, mdouble b, mdouble x, mdouble y)
+uint mandelV0::marty(mdouble a, mdouble b, mdouble x, mdouble y)
 {  uint j; mdouble xp = (sign > 0 ? 0 : 1.0), yp = 0, u, v, w;
    a -= rb; b -= ib; // c - b
    //mdouble t = 1.0; if (maxiter & 1) t *= (1.0+x*x+y*y)*(1.0+x*x+y*y)*0.25;
@@ -543,14 +543,14 @@ uint mandelBitransitive::marty(mdouble a, mdouble b, mdouble x, mdouble y)
 
 //////////////////////////////////////////////////////////////////////
 
-void mandelSymmetric::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+void mandelV1::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble u, v, N = x*x - y*y; y *= 2.0*x; x = N;
    u = a*x - b*y + 1.0; v = a*y + b*x; x += a; y += b;
    N = u*u + v*v; if (N < 1e-100) { x = 1e100; return; } x /= N; y /= N;
    N = u*x + v*y; y = u*y - v*x; x = N;
 }// (z^2 + c)/(1 + cz^2)
 
-void mandelSymmetric::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
+void mandelV1::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    mdouble &x, mdouble &y) const
 {  x = a*X - b*Y - 1.0; y = a*Y + b*X; mdouble w = x*x + y*y;
    if (w < 1e-100) { x = 1e100; return; }
@@ -558,17 +558,17 @@ void mandelSymmetric::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    root((a*x + b*y)/w, (b*x - a*y)/w, x, y);
 }// sqrt( (z - c) / (1 - cz) )
 
-void mandelSymmetric::iterate(mdouble &x, mdouble &y, int mode) const // = 0
+void mandelV1::iterate(mdouble &x, mdouble &y, int mode) const // = 0
 {  if (!mode) f(A, B, x, y);
    if (mode > 0) { x = 0; y = 0; }
    if (mode >= 0) return;
    inverse(A, B, x, y, x, y); if (mode == -2) { x = -x; y = -y; }
 }
 
-void mandelSymmetric::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+void mandelV1::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 { xmid = 0; rewidth = 3.0; if (sg > 0) { xmid = 1.0; rewidth = 2.5; } }
 
-int mandelSymmetric::bifurcate(mdouble t, mdouble &a, mdouble & b) const
+int mandelV1::bifurcate(mdouble t, mdouble &a, mdouble & b) const
 {  int per = 1; mdouble u, v, w = a - 1.0; if (w*w + b*b >= 4.0) per = 2;
    if (t <= -1.0) return per;
    if (per == 2)
@@ -580,10 +580,10 @@ int mandelSymmetric::bifurcate(mdouble t, mdouble &a, mdouble & b) const
    return 1;
 } //bifurcate
 
-uint mandelSymmetric::pixcolor(mdouble x, mdouble y)
+uint mandelV1::pixcolor(mdouble x, mdouble y)
 { if (sign < 0) return marty(A, B, x, y); else return marty(x, y, 0.0, 0.0); }
 
-uint mandelSymmetric::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!!!!!!
+uint mandelV1::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!!!!!!
 {  uint j; mdouble u = -2.0*a, v = -2.0*b, rb = a, ib = b, N; // u + iv = A - B
  
   mdouble X, Y, xp = 1.0, yp = 0.0, up = -2.0, vp = 0.0, rbp = 1.0, ibp = 0.0;
@@ -612,29 +612,30 @@ uint mandelSymmetric::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!
 
 //////////////////////////////////////////////////////////////////////
 
-void mandelMateTwo::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+//change sign only together with inverse and check mating
+void mandelV2::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble u = a + 1.0, v = b, w = x*x - y*y - 1.0; y = 2.0*x*y; x = w;
    w = x*x + y*y; if (w < 1e-100) { x = 1e100; return; } x /= w; y /= w;
    w = u*x + v*y; y = v*x - u*y; x = w + 1.0;
 }// (z^2 + c)/(z^2 - 1)
 
-void mandelMateTwo::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
+void mandelV2::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    mdouble &x, mdouble &y) const
 {  a++; X--; mdouble w = X*X + Y*Y; if (w < 1e-100) { x = 1e100; return; }
    root(1.0 + (a*X + b*Y)/w, (b*X - a*Y)/w, x, y);
 }// sqrt( (z + c) / (z - 1) )
 
-void mandelMateTwo::iterate(mdouble &x, mdouble &y, int mode) const // = 0
+void mandelV2::iterate(mdouble &x, mdouble &y, int mode) const // = 0
 {  if (!mode) f(A, B, x, y);
    if (mode > 0) { x = 0; y = 0; }
    if (mode >= 0) return;
    inverse(A, B, x, y, x, y); if (mode == -2) { x = -x; y = -y; }
 }
 
-void mandelMateTwo::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+void mandelV2::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 { xmid = 0; rewidth = 3.0; if (sg > 0) rewidth = 2.5; }
 
-int mandelMateTwo::bifurcate(mdouble t, mdouble &a, mdouble & b) const
+int mandelV2::bifurcate(mdouble t, mdouble &a, mdouble & b) const
 {  if (t <= -1.0) return 1;
    t *= (2*PI); mdouble u = 1.0 + 2.0*cos(t), v = 2.0*sin(t);
    t = -1.0/(u*u + v*v); u *= t; v *= t; //w = -rho/(rho + 2), c = w^3 - w^2 - w
@@ -643,7 +644,7 @@ int mandelMateTwo::bifurcate(mdouble t, mdouble &a, mdouble & b) const
    return 1;
 } //bifurcate
 
-uint mandelMateTwo::esctime(mdouble x, mdouble y) //escape locus grayscale
+uint mandelV2::esctime(mdouble x, mdouble y) //escape locus grayscale
 {  if (sign > 0 || drawmode || Period > 6) return mndynamics::esctime(x, y);
    uint j;
    for (j = 1; j <= maxiter; j++)
@@ -659,7 +660,7 @@ uint mandelMateTwo::esctime(mdouble x, mdouble y) //escape locus grayscale
    return 65293;
 }
 
-uint mandelMateTwo::pixcolor(mdouble x, mdouble y)
+uint mandelV2::pixcolor(mdouble x, mdouble y)
 {  if (subtype < 4 && sign < 0)
    {  if (subtype == 1) return capture(x, y); uint cl;
       if (subtype == 2) cl = mating(x, y); else cl = anti(x, y); //subtype 3
@@ -682,7 +683,7 @@ uint mandelMateTwo::pixcolor(mdouble x, mdouble y)
    return 0;
 }
 
-uint mandelMateTwo::marty(mdouble a, mdouble b, mdouble x, mdouble y)
+uint mandelV2::marty(mdouble a, mdouble b, mdouble x, mdouble y)
 {  uint j; mdouble xp = (sign > 0 ? 0 : 1.0), yp = 0, u, v, w;
    a++;
    for (j = 1; j <= maxiter; j++)
@@ -702,7 +703,7 @@ uint mandelMateTwo::marty(mdouble a, mdouble b, mdouble x, mdouble y)
    return 0;
 }
 
-uint mandelMateTwo::capture(mdouble x, mdouble y)
+uint mandelV2::capture(mdouble x, mdouble y)
 {  int j, n = pathInfo->n; if (n <= 0) return 0;
    for (j = 0; j < n; j++)
    {  f(pathInfo->rc[n-j], pathInfo->ic[n-j], x, y);
@@ -715,7 +716,7 @@ uint mandelMateTwo::capture(mdouble x, mdouble y)
    return 0;
 }
 
-uint mandelMateTwo::mating(mdouble x, mdouble y)
+uint mandelV2::mating(mdouble x, mdouble y)
 {  if (pathInfo->n <= 0) return 0;
    uint j; mdouble u, v, w, pw = pathInfo->coeff[0]; pw *= pw;
    for (j = pathInfo->n; j > 0; j--)
@@ -731,7 +732,7 @@ uint mandelMateTwo::mating(mdouble x, mdouble y)
       w = u*x - v*y; v = u*y + v*x; u = w;
       x = 1.0 - pathInfo->coeff[3]*x; y *= pathInfo->coeff[3];
       w = x*x + y*y; x /= w; y /= w; w = u*x - v*y; y = u*y + v*x; x = w;
-      return mandelMating::martyM(
+      return mndMating::martyM(
 	 pathInfo->rc[0], pathInfo->ic[0], x, y, pw*temp[1]);
    }
    w = x*x + y*y; x /= w; y /= w; //signs ignored
@@ -743,7 +744,7 @@ uint mandelMateTwo::mating(mdouble x, mdouble y)
    return 12;
 }
 
-uint mandelMateTwo::anti(mdouble x, mdouble y)
+uint mandelV2::anti(mdouble x, mdouble y)
 {  int clx, j, n = pathInfo->n; if (n <= 0) return 0;
    mdouble u, v, RS = pathInfo->coeff[0], omt = pathInfo->coeff[3],
      rp = pathInfo->rc[0], ip = pathInfo->ic[0],
@@ -776,14 +777,15 @@ uint mandelMateTwo::anti(mdouble x, mdouble y)
 
 //////////////////////////////////////////////////////////////////////
 
-void mandelMateThree::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+//change sign only together with inverse and check mating
+void mandelV3::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble u = a*a - b*b, v = 2.0*a*b, N = x*x - y*y - u; y = 2.0*x*y - v; x = N;
    N = x*x + y*y; if (N < 1e-100) { x = 1e100; return; } x /= N; y /= N;
    u--; a++; N = a*u - b*v; v = a*v + b*u; u = N;
    N = u*x + v*y; y = v*x - u*y; x = N + 1.0;
 }// (z^2 + c^3 - c - 1)/(z^2 - c^2)
 
-void mandelMateThree::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
+void mandelV3::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    mdouble &x, mdouble &y) const
 {  mdouble rb = a*a - b*b, ib = 2.0*a*b, u = a*rb - b*ib + rb - a - 1.0,
       v = a*ib + b*rb + ib - b, w; rb = -rb; ib = -ib;
@@ -791,17 +793,17 @@ void mandelMateThree::inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
    root((u*X + v*Y)/w - rb, (v*X - u*Y)/w - ib, x, y);
 }// sqrt( (A - Bz) / (z - 1) ) = sqrt( (A - Bz) / (z - 1) )
 
-void mandelMateThree::iterate(mdouble &x, mdouble &y, int mode) const // = 0
+void mandelV3::iterate(mdouble &x, mdouble &y, int mode) const // = 0
 {  if (!mode) f(A, B, x, y);
    if (mode > 0) { x = 0; y = 0; }
    if (mode >= 0) return;
    inverse(A, B, x, y, x, y); if (mode == -2) { x = -x; y = -y; }
 }
 
-void mandelMateThree::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+void mandelV3::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 { xmid = 0; rewidth = 5.0; if (sg > 0) { xmid = 0.5; rewidth = 2.5; } }
 
-int mandelMateThree::bifurcate(mdouble t, mdouble &a, mdouble & b) const
+int mandelV3::bifurcate(mdouble t, mdouble &a, mdouble & b) const
 {  if (t <= -1.0) return 2;
    t *= (2*PI); mdouble u = 4.0 + cos(t), v = -sin(t); t = 2.0/(u*u + v*v);
    u = u*t - 1.0; v *= t; //w = 2/(4 + rho) - 1 , c^2  -2wc + 1 = 0
@@ -810,7 +812,7 @@ int mandelMateThree::bifurcate(mdouble t, mdouble &a, mdouble & b) const
    return 1;
 } //bifurcate
 
-uint mandelMateThree::esctime(mdouble x, mdouble y) //escape locus grayscale
+uint mandelV3::esctime(mdouble x, mdouble y) //escape locus grayscale
 {  if (sign > 0 || drawmode || Period > 6) return mndynamics::esctime(x, y);
    uint j;
    for (j = 1; j <= maxiter; j++)
@@ -826,7 +828,7 @@ uint mandelMateThree::esctime(mdouble x, mdouble y) //escape locus grayscale
    return 65293;
 }
 
-uint mandelMateThree::pixcolor(mdouble x, mdouble y)
+uint mandelV3::pixcolor(mdouble x, mdouble y)
 {  if (subtype < 4 && sign < 0)
    {  if (subtype == 1) return capture(x, y);
       uint cl = mating(x, y);
@@ -848,7 +850,7 @@ uint mandelMateThree::pixcolor(mdouble x, mdouble y)
    return 0;
 }
 
-uint mandelMateThree::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!!!!!
+uint mandelV3::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!!!!!
 {  uint j; mdouble u = -2.0*a, v = -2.0*b, rb = a, ib = b, N; // u + iv = A - B
  
   mdouble X, Y, xp = 1.0, yp = 0.0, up = -2.0, vp = 0.0, rbp = 1.0, ibp = 0.0;
@@ -874,7 +876,7 @@ uint mandelMateThree::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!
    }
    return 10;
 }
-/*void mandelMateThree::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+/*void mandelV3::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble u = a*a - b*b, v = 2.0*a*b, N = x*x - y*y - u; y = 2.0*x*y - v; x = N;
    N = x*x + y*y; if (N < 1e-100) { x = 1e100; return; } x /= N; y /= N;
    u--; a++; N = a*u - b*v; v = a*v + b*u; u = N;
@@ -899,7 +901,7 @@ uint mandelMateThree::marty(mdouble a, mdouble b, mdouble x, mdouble y) //!!!!!!
    return 0;
 }//*/
 
-uint mandelMateThree::capture(mdouble x, mdouble y)
+uint mandelV3::capture(mdouble x, mdouble y)
 {  uint cl; int j, n = pathInfo->n; if (n <= 0) return 0;
    for (j = 0; j < n; j++)
    {  f(pathInfo->rc[n-j], pathInfo->ic[n-j], x, y);
@@ -915,7 +917,7 @@ uint mandelMateThree::capture(mdouble x, mdouble y)
    return 0;
 }
 
-uint mandelMateThree::mating(mdouble x, mdouble y) //!!!!!!!!!!!!!!!!!!!!!!!
+uint mandelV3::mating(mdouble x, mdouble y) //!!!!!!!!!!!!!!!!!!!!!!!
 {  if (pathInfo->n <= 0) return 0;
    uint j; mdouble u, v, w, pw = pathInfo->coeff[0]; pw *= pw;
    for (j = pathInfo->n; j > 0; j--)
@@ -931,7 +933,7 @@ uint mandelMateThree::mating(mdouble x, mdouble y) //!!!!!!!!!!!!!!!!!!!!!!!
       w = u*x - v*y; v = u*y + v*x; u = w;
       x = 1.0 - pathInfo->coeff[3]*x; y *= pathInfo->coeff[3];
       w = x*x + y*y; x /= w; y /= w; w = u*x - v*y; y = u*y + v*x; x = w;
-      return mandelMating::martyM(
+      return mndMating::martyM(
          pathInfo->rc[0], pathInfo->ic[0], x, y, pw*temp[1]);
    }
    w = x*x + y*y; x /= w; y /= w; //signs ignored
@@ -940,6 +942,90 @@ uint mandelMateThree::mating(mdouble x, mdouble y) //!!!!!!!!!!!!!!!!!!!!!!!
       y *= 2.0*x; x = u - v - 1.0;
    }
    return 10;
+}
+
+//////////////////////////////////////////////////////////////////////
+
+void mandelV45::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+{  mdouble t = a*a + b*b; a /= (-t); b /= t;
+   if (subtype == 4) f4(a + 1.6180339887498948482L, b, x, y);
+   else f5(a + 2.0L, b, x, y);
+}
+
+void mandelV45::f4(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+{  mdouble ra, ia, rb, ib, t = x*x - y*y; y *= 2.0L*x; x = t;
+   ra = a*a - b*b; ia = 2.0L*a*b;
+   rb = ra - a - 1.0L; ib = ia - b; // c^2 - c - 1
+   t = rb*rb + ib*ib; rb /= t; ib /= (-t); // 1/"
+   ra += -3.0L*a + 1.0L; ia -= 3.0L*b;
+   t = ra*rb - ia*ib; ia = ra*ib + ia*rb; ra = t; //(c^2 - 3c + 1) / (c^2 - c - 1)
+   x += ia*ia - ra*ra; y -= 2.0L*ra*ia;
+   t = x*x + y*y; x /= t; y /= (-t); // 1 / (z^2 - A^2)
+   ra = a*a - b*b - a; ia = 2.0L*a*b - b; // c^2 - c
+   a -= 2.0L; t = a*a - b*b; b = 2.0L*a*b; a = t; // (c - 2)^2
+   t = ra*a - ia*b; ia = ra*b + ia*a; ra = t;
+   t = rb*(rb*rb - 3.0L*ib*ib); ib *= 3.0L*rb*rb - ib*ib; rb = t;
+   t = ra*rb - ia*ib; ia = ra*ib + ia*rb; ra = t;
+   t = 8.0L*(ra*x - ia*y); y = 8.0L*(ra*y + ia*x); x = t - 1.0L;
+}
+
+void mandelV45::f5(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+{  mdouble ra, ia, rb, ib, rw, iw, t = x*x - y*y; y *= 2.0L*x; x = t;
+   rb = a*a - b*b; ib = 2.0L*a*b;
+   ra = rb - a - 1.0L; ia = ib - b; // c^2 - c - 1
+   rb += 1.0L - 3.0L*a; ib -= 3.0L*b; // c^3 - 3c + 1
+   rw = 4.0L*(1.0L - a); iw = -4.0L*b; // 4(1 - c)
+   t = rw*rb - iw*ib; iw = rw*ib + iw*rb; rw = t; // w*b
+   root(ra*ra - ia*ia + rw, 2.0L*ra*ia + iw, rw, iw);
+   if (maxiter & 2 && iw < 0.0L) { rw = -rw; iw = -iw; } //disc. pos. real axis
+   if (maxiter & 1) { rw = -rw; iw = -iw; }
+   ra += rw; ia += iw;
+   t = ra*a - ia*b; ia = ra*b + ia*a; ra = t; // c(a + w)
+   rw = a - 1.0L; t = rb*rw - ib*b; ib = rb*b + ib*rw; rb = t; // b(c - 1)
+   t = 2.0L*(rb*rb + ib*ib); rb /= t; ib /= t;
+   t = ra*rb + ia*ib; ia = ia*rb - ra*ib; ra = t + 1.0L; // a/(2b) + 1
+   rw = 0.5L*(ra + a); iw = 0.5L*(ia + b);
+   rb = a - rw; ib = b - iw;
+   t = ra*a - ia*b; ia = ra*b + ia*a; ra = t; // ac
+   t = x - rb*rb + ib*ib; ib = y - 2.0L*rb*ib; rb = t; // z^2 - b^2
+   t = rb*rb + ib*ib; rb /= t; ib /= t;
+   x = ra*rb + ia*ib -rw; y = ia*rb - ra*ib - iw; // a/b - w
+}//
+
+uint mandelV45::pixcolor(mdouble x, mdouble y)
+{  uint j; mdouble a, b;
+   if (sign > 0) { a = x; b = y; x = 0; y = 0; } else { a = A; b = B; } /*
+   mdouble ra, ia, rb, ib, rw, iw, t = a*a + b*b; a /= (-t); b /= t; a += 2.0L;
+   rb = a*a - b*b; ib = 2.0L*a*b;
+   ra = rb - a - 1.0L; ia = ib - b; // c^2 - c - 1
+   rb += 1.0L - 3.0L*a; ib -= 3.0L*b; // c^3 - 3c + 1
+   rw = 4.0L*(1.0L - a); iw = -4.0L*b; // 4(1 - c)
+   t = rw*rb - iw*ib; iw = rw*ib + iw*rb; rw = t; // w*b
+   rb = ra*ra - ia*ia + rw; ib = 2.0L*ra*ia + iw;
+   j = (rb > 0.0L ? 9 : 11); if (ib > 0.0L) j++; return j; //*/   
+   for (j = 1; j <= maxiter; j++)
+   {  f(a, b, x, y);
+      if (x*x + y*y > bailout)
+      { if (drawmode == 3) return j; else return 9 + j % subtype; }
+   }
+   return 0;
+}
+
+void mandelV45::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
+{  if (subtype == 4)
+   { xmid = 0; rewidth = 4.0; if (sg > 0) { xmid = 1.2; rewidth = 5.5; } }
+   else
+   { xmid = 0; rewidth = 5.0; if (sg > 0) { xmid = 0.4; rewidth = 3.3; } }
+}
+
+uint mandelV45::renormtime(mdouble a, mdouble b, mdouble x, mdouble y)
+{  uint j; int i, per = drawmode >> 8, preper = drawmode & 255;
+   mdouble r = ((mdouble)(preper))/((mdouble)(per)); r *= r; r = 0.25;
+   for (j = 0; j < maxiter; j++)
+   {  if ((!(j % subtype)) && x*x + y*y > r) return j;
+      f(a, b, x, y);
+   }
+   return 65293;
 }
 
 //////////////////////////////////////////////////////////////////////

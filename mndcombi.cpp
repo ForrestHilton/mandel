@@ -1,8 +1,8 @@
 /* mndcombi.cpp  by Wolf Jung (C) 2007-2023.  Defines classes:
-   mndAngle, mndCombi, mandelPath, mandelPathTwo, mandelPathThree,
-   mandelbrotPath, mandelPathExpo.
+   mndAngle, mndCombi, mndPath, mndPathTwo, mndPathThree,
+   mandelbrotPath, mndPathExpo.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -417,7 +417,7 @@ int mndCombi::backAngles(int n,
 
 //////////////////////////////////////////////////////////////////////////
 
-void mandelPath::root(mdouble x, mdouble y, mdouble &u, mdouble &v)
+void mndPath::root(mdouble x, mdouble y, mdouble &u, mdouble &v)
 {  v = sqrt(x*x + y*y);
    if (x > 0.0L) { u = sqrt(0.5L*(v + x)); v = 0.5L*y/u; return; }
    if (x < 0.0L)
@@ -428,7 +428,7 @@ void mandelPath::root(mdouble x, mdouble y, mdouble &u, mdouble &v)
 
 //////////////////////////////////////////////////////////////////////////
 
-int mandelPathMate::mating(int k0, int p0, mdouble rc, mdouble ic,
+int mndPathMate::mating(int k0, int p0, mdouble rc, mdouble ic,
    mdouble logR1, int which)
 {  if (which) { K = k0; P = p0; rq = rc; iq = ic; }
    else { k = k0; p = p0; rp = rc; ip = ic; }
@@ -490,7 +490,7 @@ Maybe there is a tradeoff,  such that many small segments mean fewer homotopy
 violations,  but more numerical cancellations.
 */
 
-int mandelPathMate::step(mdouble &rC, mdouble &iC)
+int mndPathMate::step(mdouble &rC, mdouble &iC)
 {  if (!(p*P)) return -1;
    int i, kpkp = k + p + K + P, oldset = 0, offset = (M - 1)*kpkp;
    mdouble rc, ic, rd, id, rt, it, u, v, w, x, y;
@@ -523,7 +523,7 @@ int mandelPathMate::step(mdouble &rC, mdouble &iC)
 
 //////////////////////////////////////////////////////////////////////////
 
-int mandelPathTwo::capture(int k0, int p0, mandelPathinfo *mpi)
+int mndPathTwo::capture(int k0, int p0, mndPathinfo *mpi)
 {  type = 1; k = k0; p = p0; rp = -mpi->rc[0]; ip = -mpi->ic[0];
    int i, m; mdouble x, y, u, v, w;
    while (mpi->n < M) //interpolate
@@ -564,12 +564,12 @@ int mandelPathTwo::capture(int k0, int p0, mandelPathinfo *mpi)
    return 0;
 }
 
-/*int mandelPathTwo::spider(qulonglong N, qulonglong D, mdouble logR1, int)
+/*int mndPathTwo::spider(qulonglong N, qulonglong D, mdouble logR1, int)
 {  type = 2;
    return 0;
 }//*/
 
-int mandelPathTwo::mating(int k0, int p0, mdouble rc, mdouble ic,
+int mndPathTwo::mating(int k0, int p0, mdouble rc, mdouble ic,
    mdouble logR1, int)
 {  type = 2; k = k0; p = p0; rp = rc; ip = ic; twoLogR = 2.0*logR1;
    int i, m; mdouble x = rp, y = ip, u, v, w, RS, omt;
@@ -597,7 +597,7 @@ int mandelPathTwo::mating(int k0, int p0, mdouble rc, mdouble ic,
    return 0;
 }
 
-int mandelPathTwo::anti(int k0, int p0, mdouble rQ, mdouble iQ,
+int mndPathTwo::anti(int k0, int p0, mdouble rQ, mdouble iQ,
    mdouble logR1, int)
 {  type = 3; k = k0; p = p0; rp = rQ; ip = iQ; twoLogR = 2.0L*logR1;
    int i, m; mdouble x = -rp, y = -ip, u, v, w, RS,
@@ -643,7 +643,7 @@ int mandelPathTwo::anti(int k0, int p0, mdouble rQ, mdouble iQ,
    return 0;
 }
 
-int mandelPathTwo::step(mdouble &rc, mdouble &ic)
+int mndPathTwo::step(mdouble &rc, mdouble &ic)
 {  if (!type) return -1;
    int i, oldset = 0, offset = (M - 1)*(k+p); mdouble u, v, w, x, y;
    while (offset >= 0)
@@ -666,7 +666,7 @@ int mandelPathTwo::step(mdouble &rc, mdouble &ic)
    rc = -X[1]; ic = -Y[1]; return 0;
 }
 
-int mandelPathTwo::sequence(int n, int f, int fps, mandelPathinfo *mpi)
+int mndPathTwo::sequence(int n, int f, int fps, mndPathinfo *mpi)
 {  if (!type || !draw) return -1;
    int i, m = (fps - f)*M/fps; mdouble x, y;
    delete[] mpi->coeff; delete[] mpi->rc; delete[] mpi->ic;
@@ -691,7 +691,7 @@ int mandelPathTwo::sequence(int n, int f, int fps, mandelPathinfo *mpi)
    return 0;
 }
 //////////////////////////////////////////////////////////////////////////
-/*   mandelPathThree
+/*   mndPathThree
 q2   -1.754877666246693  +0.000000000000000
 q3   -0.122561166876654  +0.744861766619744
 q4   -0.122561166876654  -0.744861766619744
@@ -702,7 +702,7 @@ c4   -0.662358978622373  -0.562279512062301
 
 //////////////////////////////////////////////////////////////////////////
 
-int mandelbrotPath::capture(int k0, int p0, mandelPathinfo *mpi)
+int mandelbrotPath::capture(int k0, int p0, mndPathinfo *mpi)
 {  steps = 0; k = k0; p = p0; mdouble rp = mpi->rc[0], ip = mpi->ic[0];
    int i, m; mdouble x, y, w;
    while (mpi->n < M) //interpolation
@@ -897,7 +897,7 @@ int mandelbrotPath::checkp(mdouble ra, mdouble ia, mdouble ru, mdouble iu,
 
 //The initial legs are horizontal,  the first one from  R  to  10*R
 //and the other ones from  2*R  to  10*R ; the preimages start at  ~logR .
-int mandelPathExpo::spider(qulonglong N, qulonglong D, mdouble R, int)
+int mndPathExpo::spider(qulonglong N, qulonglong D, mdouble R, int)
 {  k = (int)(D >> 16); p = (int)(D & 65535ULL);
    if (!k || !p || k + p > 32) { steps = -1; return -1; }
    if (R <= 0.0L)
@@ -950,7 +950,7 @@ int mandelPathExpo::spider(qulonglong N, qulonglong D, mdouble R, int)
    return 0;
 }
 
-int mandelPathExpo::step(mdouble &rc, mdouble &ic)
+int mndPathExpo::step(mdouble &rc, mdouble &ic)
 {  if (steps < 0) return -1; if (steps) return gait(rc, ic); //with legs
    int i, oldset = 0, offset = (M - 1)*(k+p);
    mdouble u, v, w, x, y;
@@ -970,7 +970,7 @@ int mandelPathExpo::step(mdouble &rc, mdouble &ic)
    w = exp(X[1]); rc = w*cos(Y[1]); ic = w*sin(Y[1]); return 0;
 }
 
-int mandelPathExpo::gait(mdouble &rc, mdouble &ic)
+int mndPathExpo::gait(mdouble &rc, mdouble &ic)
 {  int i, j, kp = k + p, offset = Ms*kp, oldset = Mmax*kp, W = 0;
    mdouble u = X[1], v = Y[1], x, y, y0, w;
    while (offset >= 0) //pullback
@@ -1013,7 +1013,7 @@ int mandelPathExpo::gait(mdouble &rc, mdouble &ic)
    return W;
 }
 
-int mandelPathExpo::checks(mdouble ru, mdouble iu, mdouble rv, mdouble iv,
+int mndPathExpo::checks(mdouble ru, mdouble iu, mdouble rv, mdouble iv,
    mdouble rw, mdouble iw) //spider with legs
 {  mdouble e, s = 1.0L, t, z = 0.5*(iu + iv) - iw;
    if (z >= PI || z <= -PI) return 0;
@@ -1030,5 +1030,591 @@ int mandelPathExpo::checks(mdouble ru, mdouble iu, mdouble rv, mdouble iv,
 //maybe prune initial segments instead of pulling in.
 
 //draw spider in which parametrization?  After ^return in yellow?
+
+////////////////////////////////////////////////////////////////////////
+
+void mandelPath::root(mdouble x, mdouble y, mdouble &u, mdouble &v)
+{  v = sqrt(x*x + y*y);
+   if (x > 0.0L) { u = sqrt(0.5L*(v + x)); v = 0.5L*y/u; return; }
+   if (x < 0.0L)
+   { v = sqrt(0.5L*(v - x)); if (y < 0.0L) v = -v; u = 0.5L*y/v; return; }
+   if (y >= 0.0L) { u = sqrt(0.5L*y); v = u; return; }
+   u = sqrt(-0.5L*y); v = -u;
+}
+
+mdouble mandelPath::getR() { return exp(logR); }
+
+void mandelPath::setR(mdouble r)
+{ if (r < 2.0L) return; logR = log(r); init(0.0L); }
+
+////////////////////////////////////////////////////////////////////////
+
+void mandelMating::setM(int m)
+{  while (m % 25) m++; if (m <= 0 || m == M) return;
+   M = m; if (!(p*P)) return;
+   delete[] X; delete[] Y; delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   X = new mdouble[(M + 1)*(K + P)]; Y = new mdouble[(M + 1)*(K + P)];
+   init(0.0L);
+}
+
+int mandelMating::setMating(int k0, int p0, mdouble a0, mdouble b0, int top)
+{  if (top) { K = k0; P = p0; A = a0; B = b0; }
+   else { k = k0; p = p0; a = a0; b = b0; }
+   if (!(p*P)) return 1;
+   
+   //share parameters
+   
+   delete[] X; delete[] Y; delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   X = new mdouble[(M + 1)*(K + P)]; Y = new mdouble[(M + 1)*(K + P)];
+   return init(0.0L);
+}
+
+int mandelMating::init(mdouble f)
+{  if (!(p*P)) return 1;
+   int i, m, offset, Offset, M0 = (int)(floor(f*M));
+   if (M0 <= 0 || M0 > M) M0 = M;
+   mdouble u = 0.0L, v = 0.0L, U, V, w, s, t, R, x0, y0;
+   for (i = 0; i < k + p; i++)
+   { t = u*u - v*v + a; v = 2.0L*u*v + b; u = t; x[i] = u; y[i] = v; }
+   if (!k) { x[p - 1] = 0.0L; y[p - 1] = 0.0L; }
+   u = 0.0L; v = 0.0L;
+   for (i = 0; i < K + P; i++)
+   { t = u*u - v*v + A; v = 2.0L*u*v + B; u = t; X[i] = u; Y[i] = v; }
+   
+   for (m = 1; m <= M; m++)
+   {  offset = m*(k + p) - 1; Offset = m*(K + P) - 1;
+      s = 1.0L - ((mdouble)(m))/((mdouble)(M)); // 1 - t
+      R = exp(logR*exp(logTwo*s)); // R_t
+      s *= exp(-2.0L*logR); // s/R_1^2
+      /*for (i = 1; i <= k + p; i++)
+      { x[offset + i] = (x[i] - s*a)/R; y[offset + i] = (y[i] - s*b)/R; }
+      for (i = 1; i <= K + P; i++)
+      {  u = X[i] - s*A; v = s*B - Y[i];
+         w = u*u + v*v; if (w < 1.0e-40L) w = 1.0e-40L;
+         w = R/w; X[Offset + i] = w*u; Y[Offset + i] = w*v;
+      }*/
+      u = 1.0L + s*A; v = s*B; U = 1.0L + s*a; V = s*b; w = U*U + V*V;
+      t = (u*U + v*V)/w; v = (v*U - u*V)/w; u = t;
+      for (i = 1; i <= k + p; i++)
+      {  x0 = x[i - 1]; y0 = y[i - 1];
+         U = s*s*(x0 - a); V = s*s*(y0 - b);
+         t = 1.0L + A*U - B*V; V = A*V + B*U; U = t; w = R*(U*U + V*V);
+         t = (x0*U + y0*V)/w; V = (y0*U - x0*V)/w; U = t;
+         x[offset + i] = u*U - v*V; y[offset + i] = u*V + v*U;
+      }
+      for (i = 1; i <= (K ? K + P : P - 1); i++)
+      {  x0 = X[i - 1]; y0 = Y[i - 1];
+         U = s*s*(x0 - A); V = s*s*(y0 - B);
+         t = 1.0L + a*U - b*V; V = a*V + b*U; U = t;
+         w = R/(x0*x0 + y0*y0);
+         t = (x0*U + y0*V)*w; V = (x0*V - y0*U)*w; U = t;
+         X[Offset + i] = u*U - v*V; Y[Offset + i] = u*V + v*U;
+      }
+      
+      //if (m == M0) share Mobius
+   }
+
+   return step(M0);
+}
+
+int mandelMating::step(int M0)
+{
+   int i, m, offset = -1, Offset = -1, oldset = M*(k + p), Oldset = M*(K + P);
+   mdouble rc, ic, rd, id, rt, it, r, q, u, v, w;
+   for (i = 0; i < k + p; i++) { x[i] = x[oldset + i]; y[i] = y[oldset + i]; }
+   for (i = 0; i < K + P; i++) { X[i] = X[Oldset + i]; Y[i] = Y[Oldset + i]; } 
+   
+   for (m = 1; m <= M0; m++)
+   {  oldset = offset; offset += k + p; Oldset = Offset; Offset += K + P;
+      
+      rc = x[offset + 1]; ic = y[offset + 1];
+      rd = X[Offset + 1]; id = Y[Offset + 1];
+      
+      v = 1.0L - rc; w = v*v + ic*ic; u = 1.0L - rd;
+      rt = (u*v + id*ic)/w; it = (u*ic - id*v)/w; // (1 - d) / (1 - c)
+   
+      for (i = 1; i < k + p; i++)
+      {  u = x[offset + i + 1] - rc; v = y[offset + i + 1] - ic;
+         r = x[offset + i + 1] - rd; q = y[offset + i + 1] - id;
+         w = r*r + q*q; u /= w; v /= w;
+         w = u*r + v*q; v = v*r - u*q; u = w; // (z - c) / (z - d)
+         root(rt*u - it*v, rt*v + it*u, u, v);
+         if (u*x[oldset + i] + v*y[oldset + i] < 0.0L) { u = -u; v = -v; }
+         x[offset + i] = u; y[offset + i] = v;
+      }
+      if (k)
+      {x[offset + k + p] = -x[offset + k]; y[offset + k + p] = -y[offset + k];}
+   
+      for (i = 1; i < K + P; i++)
+      {  if (!K && i == P - 1) { u = 1.0L; v = 0.0L; } //preimage of infty
+         else
+         {  u = X[Offset + i + 1] - rc; v = Y[Offset + i + 1] - ic;
+            r = X[Offset + i + 1] - rd; q = Y[Offset + i + 1] - id;
+            w = r*r + q*q; u /= w; v /= w;
+            w = u*r + v*q; v = v*r - u*q; u = w; // (z - c) / (z - d)
+         }
+         root(rt*u - it*v, rt*v + it*u, u, v);
+         if (u*X[Oldset + i] + v*Y[Oldset + i] < 0.0L) { u = -u; v = -v; }
+         X[Offset + i] = u; Y[Offset + i] = v;
+      }
+      if (K)
+      {X[Offset + K + P] = -X[Offset + K]; Y[Offset + K + P] = -Y[Offset + K];}
+   }
+   
+   //share function
+   
+   if (M0 == M) return 0;
+   //rotate .. row 0 will be inaccurate but segments are called only for M0 = M
+   mdouble *xm = new mdouble[M0 + 1], *ym = new mdouble[M0 + 1];
+   for (i = 0; i < k + p; i++)
+   {  for (m = 1; m <= M0; m++)
+      { xm[m] = x[m*(k + p) + i]; ym[m] = y[m*(k + p) + i]; }
+      for (m = 1; m <= M - M0; m++)
+      {  x[m*(k + p) + i] = x[(m + M0)*(k + p) + i];
+         y[m*(k + p) + i] = y[(m + M0)*(k + p) + i];
+      }
+      for (m = M - M0 + 1; m <= M; m++)
+      { x[m*(k + p) + i] = xm[m + M0 - M]; y[m*(k + p) + i] = ym[m + M0 - M]; }
+   }
+   for (i = 0; i < K + P; i++)
+   {  for (m = 1; m <= M0; m++)
+      { xm[m] = X[m*(K + P) + i]; ym[m] = Y[m*(K + P) + i]; }
+      for (m = 1; m <= M - M0; m++)
+      {  X[m*(K + P) + i] = X[(m + M0)*(K + P) + i];
+         Y[m*(K + P) + i] = Y[(m + M0)*(K + P) + i];
+      }
+      for (m = M - M0 + 1; m <= M; m++)
+      { X[m*(K + P) + i] = xm[m + M0 - M]; Y[m*(K + P) + i] = ym[m + M0 - M]; }
+   }
+   delete[] xm; delete [] ym; return 0;
+}
+
+int mandelMating::step(mdouble &rc, mdouble &ic)
+{ int e = step(M); rc = x[M*(k + p)]; ic = y[M*(k + p)]; return e; }
+
+void mandelMating::getParameters(
+   mdouble &ra, mdouble &ia, mdouble &rb, mdouble &ib, int kind)
+{  mdouble rc = x[M*(k + p)], ic = y[M*(k + p)], rd = X[M*(K + P)],
+      id = Y[M*(K + P)], u, v, q, r, w;
+   if (!kind) //not assuming d ~ 0
+   {  u = rd - rc; v = id - ic; rd = 1.0L - rd; w = rd*rd + id*id;
+      q = (u*rd - v*id)/w; r = (u*id + v*rd)/w; // (d - c) / (1 - d) 
+      rd = rc - rc*rc + ic*ic; id = ic - 2.0L*rc*ic; // c - c^2
+      ra = q*rd - r*id; ia = r*rd + q*id; return;
+   }//*/
+   /*if (!kind) //assuming d ~ 0
+   {  rd = rc*rc - ic*ic; id = 2.0L*rc*ic; rc--;
+      ra = rc*rd - ic*id; ia = ic*rd + rc*id; return;
+   }//*/
+   if (kind == 1) { ra = rc; ia = ic; rb = rd; ib = id; return; }
+   if (kind == 3) //assuming K = 0, P = 3
+   {  u = X[3*M]; v = Y[3*M]; q = X[3*M + 1]; r = Y[3*M + 1]; w = u*u + v*v;
+      ra = -(q*u + r*v)/w; ia = (q*v - r*u)/w; return;
+   }
+   u = rd - 1.0L; v = id; q = 1.0L - rc; r = ic; w = q*q + r*r;
+   u /= w; v /= w; w = u*q - v*r; r = u*r + v*q; q = w;
+   u = rd*rd - id*id; v = 2.0L*rd*id; w = u*u + v*v;
+   q /= w; r /= w; w = q*u + r*v; r = r*u - q*v; q = w;
+   w = rd*rd + id*id; u = rc/w; v = ic/w;
+   w = u*rd + v*id; v = v*rd - u*id; u = w;
+   ra = u*q - v*r; ia = u*r + v*q; rb = q; ib = r;
+}
+
+int mandelMating::getSegments(mdouble *u, mdouble *v, int top)
+{  int m, i, s = M/25;
+   if (!top)
+   {  if (!u || !v) return p + k;
+      for (m = 0; m <= 25; m++) for (i = 0; i < k + p; i++)
+      {  u[m*(k + p) + i] = x[s*m*(k + p) + i];
+         v[m*(k + p) + i] = y[s*m*(k + p) + i];
+      }
+      return 0;
+   }
+   if (!u || !v) return P + K;
+   for (m = 0; m <= 25; m++)
+   {  for (i = 0; i < (K ? K + P : P - 1); i++)
+      {  u[m*(K + P) + i] = X[s*m*(K + P) + i];
+         v[m*(K + P) + i] = Y[s*m*(K + P) + i];
+      }
+      if (!K) { u[m*P + P - 1] = 100000.0L; v[m*P + P - 1] = 0.0L; }
+   }
+   return 0;
+}
+
+////////////////////////////////////////////////////////////////////////
+
+void mandelMate0::setM(int m)
+{  while (m % 25) m++; if (m <= 0 || m == M) return;
+   M = m; if (!type) return;
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   init(0.0L);
+}
+
+int mandelMate0::setAnti(int k0, int p0, mdouble rQ, mdouble iQ)
+{  type = 2; k = k0; p = p0; a = rQ; b = iQ;
+   
+   //share parameters
+   
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   return init(0.0L);
+}
+
+int mandelMate0::init(mdouble f) //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+{  if (!type) return 1;
+   int i, m, offset, M0 = (int)(floor(f*M));
+   if (M0 <= 0 || M0 > M) M0 = M;
+   mdouble u = 1.0L, v = 0.0L, w, s, t, R, x0, y0;
+   if (type == 2)
+   {  w = a*a + b*b; x0 = a/w; y0 = -b/w;
+      for (i = 2; i < k + p; i++)
+      {  t = u*u - v*v; v = 2.0L*u*v; u = t;
+         if (i & 1) // z^2 / Q + 1
+         { t = x0*u - y0*v + 1.0L; v = x0*v + y0*u; u = t; }
+         else // Qz^2
+         { t = a*u - b*v; v = a*v + b*u; u = t; }
+         x[i] = u; y[i] = v;
+      }
+      if (!k) { x[p - 1] = 0.0L; y[p - 1] = 0.0L; }
+      for (m = 1; m <= M; m++)
+      {  offset = m*(k + p) - 1;
+         s = 1.0L - ((mdouble)(m))/((mdouble)(M)); // 1 - t
+         R = exp(2.0L*logR*exp(logTwo*s)); // R_t^2
+         s *= s*exp(-4.0L*logR); // s^2/R_1^4
+         for (i = 3; i <= k + p; i++)
+         {  x0 = x[i - 1]; y0 = y[i - 1];
+            if (i & 1) //top plane
+            {  w = x0*x0 + y0*y0;
+               x[offset + i] = R*(s + x0/w);
+               y[offset + i] = -R*y0/w;
+            }
+            else
+            { x[offset + i] = x0; y[offset + i] = y0; }
+         }
+      //if (m == M0) share Mobius
+      }
+   }
+   return step(M0);
+}
+
+int mandelMate0::step(int M0)
+{  int i, m, offset = -1, oldset = M*(k + p);
+   mdouble rc, ic, u, v, w;
+   for (i = 2; i < k + p; i++) { x[i] = x[oldset + i]; y[i] = y[oldset + i]; }
+   for (m = 1; m <= M0; m++)
+   {  oldset = offset; offset += k + p;
+      rc = x[offset + 3] - 1.0L; ic = y[offset + 3];
+      for (i = 3; i < k + p; i++)
+      {  u = x[offset + i + 1] - 1.0L; v = y[offset + i + 1];
+         w = u*u + v*v; u /= w; v /= w;
+         root(rc*u + ic*v, ic*u - rc*v, u, v); // (z3 - 1) / (z - 1)
+         if (u*x[oldset + i] + v*y[oldset + i] < 0.0L) { u = -u; v = -v; }
+         x[offset + i] = u; y[offset + i] = v;
+      }
+      if (k)
+      {x[offset + k + p] = -x[offset + k]; y[offset + k + p] = -y[offset + k];}
+   }
+   
+   //share function
+   
+   if (M0 == M) return 0;
+   mdouble *xm = new mdouble[M0 + 1], *ym = new mdouble[M0 + 1];
+   for (i = 0; i < k + p; i++)
+   {  for (m = 1; m <= M0; m++)
+      { xm[m] = x[m*(k + p) + i]; ym[m] = y[m*(k + p) + i]; }
+      for (m = 1; m <= M - M0; m++)
+      {  x[m*(k + p) + i] = x[(m + M0)*(k + p) + i];
+         y[m*(k + p) + i] = y[(m + M0)*(k + p) + i];
+      }
+      for (m = M - M0 + 1; m <= M; m++)
+      { x[m*(k + p) + i] = xm[m + M0 - M]; y[m*(k + p) + i] = ym[m + M0 - M]; }
+   }
+   delete[] xm; delete [] ym; return 0;
+}
+
+int mandelMate0::step(mdouble &rc, mdouble &ic)
+{ int e = step(M); rc = x[M*(k+p) + 2] - 1.0L; ic = y[M*(k+p) + 2]; return e; }
+
+void mandelMate0::getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int)
+{ ra = x[M*(k + p) + 2] - 1.0L; ia = y[M*(k + p) + 2]; }
+
+////////////////////////////////////////////////////////////////////////
+
+void mandelMate1::setM(int m)
+{  while (m % 25) m++; if (m <= 0 || m == M) return;
+   M = m; if (!p) return;
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   init(0.0L);
+}
+
+int mandelMate1::setMating(int k0, int p0, mdouble a0, mdouble b0, int)
+{  k = k0; p = p0; a = a0; b = b0;
+   
+   //share parameters
+   
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   return init(0.0L);
+}
+
+int mandelMate1::init(mdouble f)
+{  if (!p) return 1;
+   int i, m, offset, M0 = (int)(floor(f*M));
+   if (M0 <= 0 || M0 > M) M0 = M;
+   mdouble u = 0.0L, v = 0.0L, w, s, t, R, x0, y0;
+   for (i = 0; i < k + p; i++)
+   { t = u*u - v*v + a; v = 2.0L*u*v + b; u = t; x[i] = u; y[i] = v; }
+   if (!k) { x[p - 1] = 0.0L; y[p - 1] = 0.0L; }
+   for (m = 1; m <= M; m++)
+   {  offset = m*(k + p) - 1;
+      s = 1.0L - ((mdouble)(m))/((mdouble)(M)); // 1 - t
+      R = exp(logR*exp(logTwo*s)); // R_t
+      s *= exp(-2.0L*logR); // s/R_1^2
+      for (i = 1; i <= k + p; i++)
+      {  x0 = x[i - 1]; y0 = y[i - 1]; u = s*s*(x0 - a); v = s*s*(y0 - b);
+         t = 1.0L + a*u - b*v; v = a*v + b*u; u = t; w = R*(u*u + v*v);
+         x[offset + i] = (x0*u + y0*v)/w; y[offset + i] = (y0*u - x0*v)/w;
+      }
+      
+      //if (m == M0) share Mobius
+   }
+
+   return step(M0);
+}
+
+int mandelMate1::step(int M0)
+{  int i, m, offset = -1, oldset = M*(k + p);
+   mdouble rc, ic, r, q, u, v, w;
+   for (i = 0; i < k + p; i++) { x[i] = x[oldset + i]; y[i] = y[oldset + i]; }
+   for (m = 1; m <= M0; m++)
+   {  oldset = offset; offset += k + p; rc = x[offset + 1]; ic = y[offset + 1];
+      for (i = 1; i < k + p; i++)
+      {  u = x[offset + i + 1] - rc; v = y[offset + i + 1] - ic;
+         r = 1.0L - rc*x[offset + i + 1] + ic*y[offset + i + 1];
+         q = ic*x[offset + i + 1] + rc*y[offset + i + 1];
+         w = r*r + q*q; u /= w; v /= w;
+         root(u*r - v*q, v*r + u*q, u, v); // (z - c) / (1 - cz)
+         if (u*x[oldset + i] + v*y[oldset + i] < 0.0L) { u = -u; v = -v; }
+         x[offset + i] = u; y[offset + i] = v;
+      }
+      if (k)
+      {x[offset + k + p] = -x[offset + k]; y[offset + k + p] = -y[offset + k];}
+   }
+   
+   //share function
+   
+   if (M0 == M) return 0;
+   mdouble *xm = new mdouble[M0 + 1], *ym = new mdouble[M0 + 1];
+   for (i = 0; i < k + p; i++)
+   {  for (m = 1; m <= M0; m++)
+      { xm[m] = x[m*(k + p) + i]; ym[m] = y[m*(k + p) + i]; }
+      for (m = 1; m <= M - M0; m++)
+      {  x[m*(k + p) + i] = x[(m + M0)*(k + p) + i];
+         y[m*(k + p) + i] = y[(m + M0)*(k + p) + i];
+      }
+      for (m = M - M0 + 1; m <= M; m++)
+      { x[m*(k + p) + i] = xm[m + M0 - M]; y[m*(k + p) + i] = ym[m + M0 - M]; }
+   }
+   delete[] xm; delete [] ym; return 0;
+}
+
+int mandelMate1::step(mdouble &rc, mdouble &ic)
+{ int e = step(M); rc = x[M*(k + p)]; ic = y[M*(k + p)]; return e; }
+
+void mandelMate1::getParameters( //add other normalizations?
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int)
+{ ra = x[M*(k + p)]; ia = y[M*(k + p)]; }
+
+int mandelMate1::getSegments(mdouble *u, mdouble *v, int top)
+{  int m, i, s = M/25; if (!u || !v) return p + k;
+   for (m = 0; m <= 25; m++) for (i = 0; i < k + p; i++)
+   {  u[m*(k + p) + i] = x[s*m*(k + p) + i];
+      v[m*(k + p) + i] = y[s*m*(k + p) + i];
+   }
+   if (!top) return 0; mdouble w;
+   for (m = 0; m <= 25; m++)
+   {  for (i = 0; i < (k ? k + p : p - 1); i++)
+      {  w = u[m*(k+p) + i]*u[m*(k+p) + i] + u[m*(k+p) + i]*u[m*(k+p) + i];
+         u[m*(k + p) + i] /= w; v[m*(k + p) + i] /= (-w);
+      }
+      if (!k) { u[m*p + p - 1] = 100000.0L; v[m*p + p - 1] = 0.0L; }
+   }
+   return 0;
+}
+
+////////////////////////////////////////////////////////////////////////
+
+
+void mandelMate2::setM(int m)
+{  while (m % 25) m++; if (m <= 0 || m == M) return;
+   M = m; if (!type) return;
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   init(0.0L);
+}
+
+int mandelMate2::setMating(int k0, int p0, mdouble a0, mdouble b0, int)
+{  type = 1; k = k0; p = p0; a = a0; b = b0;
+   
+   //share parameters
+   
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   return init(0.0L);
+}
+
+int mandelMate2::setAnti(int k0, int p0, mdouble rQ, mdouble iQ)
+{  type = 2; k = k0; p = p0; a = rQ; b = iQ;
+   
+   //share parameters
+   
+   delete[] x; delete[] y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   return init(0.0L);
+}
+
+int mandelMate2::init(mdouble f)
+{  if (!type) return 1;
+   int i, m, offset, M0 = (int)(floor(f*M));
+   if (M0 <= 0 || M0 > M) M0 = M;
+   mdouble u = 0.0L, v = 0.0L, w, s, t, R, x0, y0;
+   if (type == 1)
+   {  for (i = 0; i < k + p; i++)
+      { t = u*u - v*v + a; v = 2.0L*u*v + b; u = t; x[i] = u; y[i] = v; }
+      if (!k) { x[p - 1] = 0.0L; y[p - 1] = 0.0L; }
+      for (m = 1; m <= M; m++)
+      {  offset = m*(k + p) - 1;
+         s = 1.0L - ((mdouble)(m))/((mdouble)(M)); // 1 - t
+         R = exp(2.0L*logR*exp(logTwo*s)); // R_t^2
+         s *= s*exp(-4.0L*logR); // s^2/R_1^4
+         for (i = 1; i <= k + p; i++)
+         {  x0 = x[i - 1]; y0 = y[i - 1];
+            u = 1.0L + s*(a - x0); v = s*(b - y0); w = R*(u*u + v*v);
+            x[offset + i] = (x0*u + y0*v)/w; y[offset + i] = (y0*u - x0*v)/w;
+         }
+      //if (m == M0) share Mobius
+      }
+   }
+   if (type == 2)
+   {  w = a*a + b*b; x0 = a/w; y0 = -b/w;
+      for (i = 0; i < k + p; i++)
+      {  t = u*u - v*v; v = 2.0L*u*v; u = t;
+         if (i & 1) // z^2 / Q + 1
+         { t = x0*u - y0*v + 1.0L; v = x0*v + y0*u; u = t; }
+         else // Q(z^2 -1)
+         { u--; t = a*u - b*v; v = a*v + b*u; u = t; }
+         x[i] = u; y[i] = v;
+      }
+      if (!k) { x[p - 1] = 0.0L; y[p - 1] = 0.0L; }
+      for (m = 1; m <= M; m++)
+      {  offset = m*(k + p) - 1;
+         s = 1.0L - ((mdouble)(m))/((mdouble)(M)); // 1 - t
+         R = exp(2.0L*logR*exp(logTwo*s)); // R_t^2
+         s *= s*exp(-4.0L*logR); // s^2/R_1^4
+         for (i = 1; i <= k + p; i++)
+         {  x0 = x[i - 1]; y0 = y[i - 1];
+            if (i & 1) //top plane
+            {  u = R*(1.0L + s*(x0 + a)); v = R*s*(y0 + b); w = x0*x0 + y0*y0;
+               x[offset + i] = -(x0*u + y0*v)/w;
+               y[offset + i] = (y0*u - x0*v)/w;
+            }
+            else
+            {  u = s*(1.0L - x0); v = -s*y0;
+               t = 1.0L + a*u - b*v; v = a*v + b*u; u = t; w = u*u + v*v;
+               x[offset + i] = -(x0*u + y0*v)/w;
+               y[offset + i] = (x0*v - y0*u)/w;
+            }
+         }
+      //if (m == M0) share Mobius
+      }
+   }
+   return step(M0);
+}
+
+int mandelMate2::step(int M0)
+{  int i, m, offset = -1, oldset = M*(k + p);
+   mdouble rc, ic, r, q, u, v, w;
+   for (i = 0; i < k + p; i++) { x[i] = x[oldset + i]; y[i] = y[oldset + i]; }
+   for (m = 1; m <= M0; m++)
+   {  oldset = offset; offset += k + p;
+      rc = x[offset + 1] + 1.0L; ic = y[offset + 1];
+      for (i = 1; i < k + p; i++)
+      {  u = x[offset + i + 1] + 1.0L; v = y[offset + i + 1];
+         w = u*u + v*v; u /= w; v /= w;
+         root(1.0L - rc*u - ic*v, rc*v - ic*u, u, v); // (z - c) / (z + 1)
+         if (u*x[oldset + i] + v*y[oldset + i] < 0.0L) { u = -u; v = -v; }
+         x[offset + i] = u; y[offset + i] = v;
+      }
+      if (k)
+      {x[offset + k + p] = -x[offset + k]; y[offset + k + p] = -y[offset + k];}
+   }
+   
+   //share function
+   
+   if (M0 == M) return 0;
+   mdouble *xm = new mdouble[M0 + 1], *ym = new mdouble[M0 + 1];
+   for (i = 0; i < k + p; i++)
+   {  for (m = 1; m <= M0; m++)
+      { xm[m] = x[m*(k + p) + i]; ym[m] = y[m*(k + p) + i]; }
+      for (m = 1; m <= M - M0; m++)
+      {  x[m*(k + p) + i] = x[(m + M0)*(k + p) + i];
+         y[m*(k + p) + i] = y[(m + M0)*(k + p) + i];
+      }
+      for (m = M - M0 + 1; m <= M; m++)
+      { x[m*(k + p) + i] = xm[m + M0 - M]; y[m*(k + p) + i] = ym[m + M0 - M]; }
+   }
+   delete[] xm; delete [] ym; return 0;
+}
+
+int mandelMate2::step(mdouble &rc, mdouble &ic)
+{ int e = step(M); rc = x[M*(k + p)]; ic = y[M*(k + p)]; return e; }
+
+void mandelMate2::getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int)
+{ ra = x[M*(k + p)]; ia = y[M*(k + p)]; }
+
+
+////////////////////////////////////////////////////////////////////////
+
+void mandelMate3::setM(int m)
+{  while (m % 25) m++; if (m <= 0 || m == M) return;
+   M = m; if (!type) return;
+   delete[] x; delete[] y; delete[] X; delete[] Y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   X = new mdouble[M + 1]; Y = new mdouble[M + 1];
+   init(0.0L);
+}
+
+int mandelMate3::setMating(int k0, int p0, mdouble a0, mdouble b0, int top)
+{  if (top) { A = a0; B = b0; } else { k = k0; p = p0; a = a0; b = b0; }
+   if (!p) return 1; else type = 1;
+   
+   //share parameters
+   
+   delete[] x; delete[] y; delete[] X; delete[] Y;
+   x = new mdouble[(M + 1)*(k + p)]; y = new mdouble[(M + 1)*(k + p)];
+   X = new mdouble[M + 1]; Y = new mdouble[M + 1];
+   return init(0.0L);
+}
+
+//init
+
+//step
+
+int mandelMate3::step(mdouble &rc, mdouble &ic)
+{ int e = step(M); rc = X[M]; ic = Y[M]; return e; }
+
+void mandelMate3::getParameters(
+   mdouble &ra, mdouble &ia, mdouble &, mdouble &, int)
+{ ra = X[M]; ia = Y[M]; }
+
+////////////////////////////////////////////////////////////////////////
+
+//mandelbrot
 
 ////////////////////////////////////////////////////////////////////////

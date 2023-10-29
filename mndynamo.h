@@ -1,17 +1,17 @@
 /* mndynamo.h  by Wolf Jung (C) 2007-2023.  Declares classes:
    [defined in mndynamo.cpp :]
    mndynamics, mndsiegel, mndcubicsiegel, mndquartsiegel, mndexposiegel,
-   mndtrigosiegel, mndexpo, mndtrigo, mndmatesiegel, mndmating, mndsingpert,
+   mndtrigosiegel, mndexpo, mndtrigo, mndmatesiegel, mndMating, mndsingpert,
    mndherman, mndnewtonsiegel, mndnewton, mndcubicnewton, mndquarticnewton
    [defined in mndlbrot.cpp :]
    mndlbrot, mndmulti, mndbfpoly, mndcubic, mndquartic, mndsurge,
    mndrealcubic, mndtricorn, mndhenon, mndifs, mndlambda, mndScale
    [defined in mndcombi.cpp :]
-   mndAngle, mndCombi, mandelPath, mandelPathMate,
-   mandelPathTwo, mandelPathThree, mandelbrotPath, mandelPathExpo.
-   Defines class mandelPathInfo.
+   mndAngle, mndCombi, mndPath, mndPathMate,
+   mndPathTwo, mndPathThree, mandelbrotPath, mndPathExpo.
+   Defines class mndPathInfo.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -61,8 +61,8 @@ typedef  double  odouble;
        mndbfpoly  :  cz(1 + z/q)^q  (Branner-Fagella)
        mndcubic   :  various cubic polynomial families
        mndquartic :  various quartic polynomial families
-       mandelMating, mandelBitransitive, mandelSymmetric,
-          mandelMateTwo, mandelmateThree, MandelRational
+       mndMating, mandelV0, mandelV1,
+          mandelV2, mandelV3, MandelRational
        mandelHerman
        mndmenage  :  c(z + 0.5/z^2) , rotationally symmetric (Henriksen)
        mndsingpert:  z^2 + c/z^2 , singular perturbation of z^2
@@ -148,15 +148,15 @@ typedef  double  odouble;
    reallocating,  or set to 0 when unused.
 */
 
-class mandelPathinfo {
+class mndPathinfo {
 private: //disabled
-   mandelPathinfo(const mandelPathinfo &);
-   mandelPathinfo &operator=(const mandelPathinfo &);
+   mndPathinfo(const mndPathinfo &);
+   mndPathinfo &operator=(const mndPathinfo &);
 public:
    int n; mdouble *coeff, *rc, *ic;
-   mandelPathinfo()
+   mndPathinfo()
    { n = -1; coeff = 0; rc = 0; ic = 0; }
-   virtual ~mandelPathinfo()
+   virtual ~mndPathinfo()
    { delete[] coeff; delete[] rc; delete[] ic; }
 };
 
@@ -173,11 +173,11 @@ protected:
    { x = 0; y = 0; }
    virtual uint renormtime(mdouble a, mdouble b, mdouble x, mdouble y);
 public:
-   mandelPathinfo *pathInfo;
+   mndPathinfo *pathInfo;
    static void root(mdouble x, mdouble y, mdouble &u, mdouble &v);
    mndynamics(int subtype0)
    {  subtype = subtype0; A = 0.0L; B = 0.0L; bailout = 16.0L; pathInfo = 0;
-      temp = new mdouble[5]; pathInfo = new mandelPathinfo;
+      temp = new mdouble[5]; pathInfo = new mndPathinfo;
    }
    virtual ~mndynamics() { delete[] temp; delete pathInfo; }
    virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
@@ -201,6 +201,8 @@ public:
    //virtual int similarity(uint preper, uint per, mdouble&a, mdouble&b, mdouble *t)
    virtual int similarity(uint, uint, mdouble &, mdouble &, mdouble *) const
    { return -1; }
+   virtual int mandelRay(int, int, qulonglong, qulonglong,
+     mdouble *, mdouble *) { return 0; }   
 }; //mndynamics
 
 /*
@@ -240,7 +242,7 @@ protected:
    virtual void critical(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
 public:
    mndquartsiegel(int subtype0) : mndsiegel(subtype0) {}
-    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
+   virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
 };
 
 class mndexposiegel : public mndsiegel {
@@ -299,12 +301,12 @@ public:
    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
 };
 
-class mandelMating : public mndynamics {
+class mndMating : public mndynamics {
 protected:
    mutable mdouble C, D;
    virtual void f(mdouble, mdouble, mdouble &, mdouble &) const {}
 public:
-   mandelMating(int subtype0) : mndynamics(subtype0)
+   mndMating(int subtype0) : mndynamics(subtype0)
    //{ A = -0.122561166876654; B = 0.744861766619744L; C = -1.0L; D = 0.0L; }
    { A = -1.256367930068181L; B = 0.380320963472722L;
       C = -0.615805132905564L; D = 0.687211340203275L; }
@@ -317,7 +319,7 @@ public:
       mdouble pw, int sg = -1);
 };
 
-class mandelBitransitive : public mndynamics {
+class mandelV0 : public mndynamics {
 protected:
    mutable mdouble rb, ib;
    virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
@@ -327,7 +329,7 @@ protected:
    { x = 1.0L; y = 0.0L; }
    uint marty(mdouble a, mdouble b, mdouble x, mdouble y);
 public:
-   mandelBitransitive(int subtype0) : mndynamics(subtype0)
+   mandelV0(int subtype0) : mndynamics(subtype0)
    { rb = 0.0L; ib = 0.0L; bailout = 1.0e100L; }
    virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
    virtual int minMode(int) const { return 0; }
@@ -337,14 +339,14 @@ public:
    virtual uint pixcolor(mdouble x, mdouble y);
 };
 
-class mandelSymmetric : public mndynamics {
+class mandelV1 : public mndynamics {
 protected:
    virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    virtual void inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
                         mdouble &x, mdouble &y) const;
    uint marty(mdouble a, mdouble b, mdouble x, mdouble y);
 public:
-   mandelSymmetric(int subtype0) : mndynamics(subtype0)
+   mandelV1(int subtype0) : mndynamics(subtype0)
    { bailout = 1e20; }
    virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
    virtual int minMode(int) const { return 0; }
@@ -354,7 +356,7 @@ public:
    virtual uint pixcolor(mdouble x, mdouble y);
 };
 
-class mandelMateTwo : public mndynamics {
+class mandelV2 : public mndynamics {
 protected:
    virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    virtual void inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
@@ -364,8 +366,8 @@ protected:
    uint mating(mdouble x, mdouble y);
    uint anti(mdouble x, mdouble y);
 public:
-   mandelMateTwo(int subtype0) : mndynamics(subtype0)
-   { bailout = 1e20; pathInfo = new mandelPathinfo(); }
+   mandelV2(int subtype0) : mndynamics(subtype0)
+   { bailout = 1e20; pathInfo = new mndPathinfo(); }
    virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
    virtual int minMode(int sg) const
    {  if (sg > 0 || subtype == 4) return 0;
@@ -382,7 +384,7 @@ public:
    virtual uint pixcolor(mdouble x, mdouble y);
 };
 
-class mandelMateThree : public mndynamics {
+class mandelV3 : public mndynamics {
 protected:
    virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    virtual void inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
@@ -391,8 +393,7 @@ protected:
    uint capture(mdouble x, mdouble y);
    uint mating(mdouble x, mdouble y);
 public:
-   mandelMateThree(int subtype0) : mndynamics(subtype0)
-   { bailout = 1e20; }
+   mandelV3(int subtype0) : mndynamics(subtype0) { bailout = 1e20; }
    virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
    virtual int minMode(int sg) const
    {  if (sg > 0 || subtype == 4) return 0;
@@ -405,6 +406,26 @@ public:
    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
    virtual int bifurcate(mdouble t, mdouble &a, mdouble &b) const;
    virtual uint esctime(mdouble x, mdouble y);
+   virtual uint pixcolor(mdouble x, mdouble y);
+};
+
+class mandelV45 : public mndynamics {
+protected:
+   virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
+   virtual void f4(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
+   virtual void f5(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
+//   virtual void inverse(mdouble a, mdouble b, mdouble X, mdouble Y,
+//                        mdouble &x, mdouble &y) const;
+//   uint marty(mdouble a, mdouble b, mdouble x, mdouble y);
+   virtual uint renormtime(mdouble a, mdouble b, mdouble x, mdouble y);
+public:
+   mandelV45(int subtype0) : mndynamics(subtype0) { bailout = 1e20; }
+//   virtual void iterate(mdouble &x, mdouble &y, int mode = 0) const;
+   virtual int minMode(int) const { return 0; }
+   virtual int maxMode(int) const { return 3; }
+   virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
+//   virtual int bifurcate(mdouble t, mdouble &a, mdouble &b) const;
+//   virtual uint esctime(mdouble x, mdouble y);
    virtual uint pixcolor(mdouble x, mdouble y);
 };
 
@@ -623,7 +644,9 @@ public:
    virtual int turnsign(mdouble x, mdouble y);
    virtual mdouble green(int sg, mdouble x, mdouble y);
    virtual int similarity(uint preper, uint per, mdouble &a, mdouble &b,
-     mdouble *t) const;
+      mdouble *t) const;
+   virtual int mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+      mdouble *xlist, mdouble *ylist);   
 };
 
 class mndmulti : public mndynamics {
@@ -645,6 +668,8 @@ public:
    virtual uint pixcolor(mdouble x, mdouble y);
    virtual int turnsign(mdouble x, mdouble y);
    virtual mdouble green(int sg, mdouble x, mdouble y);
+   virtual int mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+     mdouble *xlist, mdouble *ylist);   
 };
 
 class mndbfpoly : public mndynamics {
@@ -664,8 +689,9 @@ class mndcubic : public mndynamics {
 protected:
    mutable mdouble rb, ib;
    virtual void f(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
+   void f2(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    void fbasilica(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
-   void frabbit(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
+   void f3(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    virtual void critical(mdouble a, mdouble b, mdouble &x, mdouble &y) const;
    uint marty(mdouble a, mdouble b, mdouble x, mdouble y);
 public:
@@ -689,10 +715,14 @@ protected:
    { if (subtype & 1) { x = 0.0L; y = 0.0L; } else root(-a, -b, x, y); }   
 public:
    mandelQPPQ(int subtype0) : mndynamics(subtype0)
-   { A = 0.41421356237309505L; B = 0.0L; bailout = 100.0L; }
+   { A = 0.74543212464725616684L; B = 0.0L; bailout = 100.0L; }
    virtual void setDegree(int degree)
    { if (degree < 3) subtype = degree; else subtype ^= 3; }
    virtual void startPlane(int sg, mdouble &xmid, mdouble &rewidth) const;
+   virtual int find(int sg, uint preper, uint per,
+     mdouble &x, mdouble &y) const;
+   virtual int mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+     mdouble *xlist, mdouble *ylist);   
 };
 
 class mndquartic : public mndynamics {
@@ -972,17 +1002,17 @@ public:
    int toAngles(qulonglong &n1, qulonglong &n2, qulonglong &d) const;
 };
 
-class mandelPath {
+class mndPath {
 private: //disabled
-   mandelPath(const mandelPath &);
-   mandelPath &operator=(const mandelPath &);
+   mndPath(const mndPath &);
+   mndPath &operator=(const mndPath &);
 protected:
    int M, draw;
 public:
    static void root(mdouble x, mdouble y, mdouble &u, mdouble &v);
-   mandelPath(int draw1 = 0, int M1 = 150) { M = M1; draw = draw1; }
-   virtual ~mandelPath() { }
-   virtual int capture(int, int, mandelPathinfo *) { return 0; }
+   mndPath(int draw1 = 0, int M1 = 150) { M = M1; draw = draw1; }
+   virtual ~mndPath() { }
+   virtual int capture(int, int, mndPathinfo *) { return 0; }
    virtual int spider(qulonglong, qulonglong, mdouble logR1 = logTen,
       int upper = 0) { return upper*((int)(logR1)); }
    virtual int mating(int, int, mdouble, mdouble, mdouble logR1 = logTen,
@@ -990,38 +1020,38 @@ public:
    virtual int anti(int, int, mdouble, mdouble, mdouble logR1 = logTen,
       int upper = 0) { return upper*((int)(logR1)); }
    virtual int step(mdouble &, mdouble &) { return 0; }
-   virtual int sequence(int, int, int, mandelPathinfo *) { return 0; }
+   virtual int sequence(int, int, int, mndPathinfo *) { return 0; }
 };
 
-class mandelPathMate : public mandelPath {
+class mndPathMate : public mndPath {
 protected:
    int k, p, K, P;
    mdouble rp, ip, rq, iq, logR, *X, *Y, *X0, *Y0;
 public:
    mdouble rD, iD;
-   mandelPathMate(int draw1 = 0, int M1 = 150) : mandelPath(draw1, M1)
+   mndPathMate(int draw1 = 0, int M1 = 150) : mndPath(draw1, M1)
    { k = 0; p = 0; K = 0; P = 0; X = 0; Y = 0; X0 = 0; Y0 = 0; logR = 1.0L;
      rD = 0.0L; iD = 0.0L; }
-   virtual ~mandelPathMate()
+   virtual ~mndPathMate()
    { delete[] X0; delete[] Y0; delete[] X; delete[] Y; }
 // virtual int spider(qulonglong N, qulonglong D, mdouble logR1 = logTen,
 //    int dummy = 0);
    virtual int mating(int k0, int p0, mdouble rc, mdouble ic,
       mdouble logR1 = logTen, int which = 0);
    virtual int step(mdouble &rc, mdouble &ic);
-// virtual int sequence(int n, int f, int fps, mandelPathinfo *mpi);
+// virtual int sequence(int n, int f, int fps, mndPathinfo *mpi);
 };
 
-class mandelPathTwo : public mandelPath {
+class mndPathTwo : public mndPath {
 protected:
    int type, k, p;
    mdouble rp, ip, twoLogR, *X, *Y, *X0, *Y0;
 public:
-   mandelPathTwo(int draw1 = 0, int M1 = 150) : mandelPath(draw1, M1)
+   mndPathTwo(int draw1 = 0, int M1 = 150) : mndPath(draw1, M1)
    { type = 0; X = 0; Y = 0; X0 = 0; Y0 = 0; }
-   virtual ~mandelPathTwo()
+   virtual ~mndPathTwo()
    { delete[] X0; delete[] Y0; delete[] X; delete[] Y; }
-   virtual int capture(int k0, int p0, mandelPathinfo *mpi);
+   virtual int capture(int k0, int p0, mndPathinfo *mpi);
 // virtual int spider(qulonglong N, qulonglong D, mdouble logR1 = logTen,
 //    int dummy = 0);
    virtual int mating(int k0, int p0, mdouble rc, mdouble ic,
@@ -1029,33 +1059,10 @@ public:
    virtual int anti(int k0, int p0, mdouble rQ, mdouble iQ,
       mdouble logR1 = logTen, int dummy = 0);
    virtual int step(mdouble &rc, mdouble &ic);
-   virtual int sequence(int n, int f, int fps, mandelPathinfo *mpi);
+   virtual int sequence(int n, int f, int fps, mndPathinfo *mpi);
 };
 
-/*
-class mandelPathThree : public mandelPath {
-protected:
-   int type, k, p;
-   mdouble rp, ip, rq, iq, twoLogR, *X, *Y, *X0, *Y0, *U, *V, *U0, *V0;
-public:
-   mandelPathThree(int draw1 = 0, int M1 = 150) : mandelPath(draw1, M1)
-   {  type = 0; X = 0; Y = 0; X0 = 0; Y0 = 0;
-      U = 0; V = 0; U0 = 0; V0 = 0;
-   }
-   virtual ~mandelPathThree()
-   {  delete[] U0; delete[] V0; delete[] U; delete[] V;
-      delete[] X0; delete[] Y0; delete[] X; delete[] Y;
-   }
-   virtual int capture(int k0, int p0, mandelPathinfo *mpi);
-   virtual int spider(qulonglong N, qulonglong D, mdouble logR1 = logTen,
-      int which = 2);
-   virtual int mating(int k0, int p0, mdouble rc, mdouble ic,
-      mdouble logR1 = logTen, int which = 2);
-   virtual int step(mdouble &rc, mdouble &ic);
-   virtual int sequence(int n, int f, int fps, mandelPathinfo *mpi);
-};//*/
-
-class mandelbrotPath : public mandelPath {
+class mandelbrotPath : public mndPath {
 protected:
    int Ms, Mmax, steps, k, p;
    mdouble *X, *Y;
@@ -1065,17 +1072,17 @@ protected:
    int checkp(mdouble ra, mdouble ia, mdouble ru, mdouble iu,
       mdouble rc, mdouble ic, mdouble rv, mdouble iv);
 public:
-   mandelbrotPath(int draw1 = 0, int M1 = 150) : mandelPath(draw1, M1)
+   mandelbrotPath(int draw1 = 0, int M1 = 150) : mndPath(draw1, M1)
    { Ms = 0; Mmax = 0; steps = -1; X = 0; Y = 0; }
    virtual ~mandelbrotPath() { delete[] X; delete[] Y; }
-   virtual int capture(int k0, int p0, mandelPathinfo *mpi);
+   virtual int capture(int k0, int p0, mndPathinfo *mpi);
    virtual int spider(qulonglong N, qulonglong D, mdouble logR = 2.0*logTen,
       int dummy = 0);
    virtual int step(mdouble &rc, mdouble &ic);
-// virtual int sequence(int n, int f, int fps, mandelPathinfo *mpi);
+// virtual int sequence(int n, int f, int fps, mndPathinfo *mpi);
 };
 
-class mandelPathExpo : public mandelPath {
+class mndPathExpo : public mndPath {
 protected:
    int Ms, Mmax, steps, k, p;
    mdouble *X, *Y;
@@ -1083,11 +1090,131 @@ protected:
    int checks(mdouble ru, mdouble iu, mdouble rv, mdouble iv, mdouble rw,
       mdouble iw);
 public:
-   mandelPathExpo(int draw1 = 0, int M1 = 150) : mandelPath(draw1, M1)
+   mndPathExpo(int draw1 = 0, int M1 = 150) : mndPath(draw1, M1)
    { Ms = 0; Mmax = 0; steps = -1; X = 0; Y = 0; }
-   virtual ~mandelPathExpo() { delete[] X; delete[] Y; }
+   virtual ~mndPathExpo() { delete[] X; delete[] Y; }
    virtual int spider(qulonglong N, qulonglong D, mdouble R = 0.0L, int d = 0);
    virtual int step(mdouble &rc, mdouble &ic);
-// virtual int sequence(int n, int f, int fps, mandelPathinfo *mpi);
+// virtual int sequence(int n, int f, int fps, mndPathinfo *mpi);
 };
+
+class mandelPath {
+private: //disabled
+   mandelPath(const mandelPath &);
+   mandelPath &operator=(const mandelPath &);
+protected:
+   int M;
+   mdouble logR;
+   virtual int step(int) { return 1; }
+public:
+   static void root(mdouble x, mdouble y, mdouble &u, mdouble &v);
+   mandelPath() { M = 100; logR = logTen; }
+   virtual ~mandelPath() { }
+   virtual int getM() { return M; }
+   virtual void setM(int) { }
+   virtual mdouble getR();
+   virtual void setR(mdouble);
+   //virtual int capture(int, int, mandelPathinfo *) { return 0; }
+   //virtual int spider(qulonglong, qulonglong, mdouble logR1 = logTen,
+   //   int upper = 0) { return upper*((int)(logR1)); }
+   virtual int setMating(int, int, mdouble, mdouble, int) { return 0; }
+   virtual int setAnti(int, int, mdouble, mdouble) { return 0; }
+   virtual int init(mdouble) { return 0; }
+   virtual int step(mdouble &, mdouble &) { return 1; }
+   virtual void getParameters(
+      mdouble &, mdouble &, mdouble &, mdouble &, int) { }
+   virtual int getSegments(mdouble *, mdouble *, int) { return 0; }
+};
+
+class mandelMating : public mandelPath {
+protected:
+   int k, p, K, P;
+   mdouble a, b, A, B, *x, *y, *X, *Y;
+   virtual int step(int M0);
+public:
+   mandelMating() : mandelPath()
+   { p = 0; P = 0; x = 0; y = 0; X = 0; Y = 0; }
+   virtual ~mandelMating()
+   { delete[] X; delete[] Y; delete[] x; delete[] y; }
+   virtual void setM(int m);
+   virtual int setMating(int k0, int p0, mdouble a0, mdouble b0, int top);
+   virtual int init(mdouble f);
+   virtual int step(mdouble &rc, mdouble &ic);
+   virtual void getParameters(
+      mdouble &ra, mdouble &ia, mdouble &rb, mdouble &ib, int kind);
+   virtual int getSegments(mdouble *u, mdouble *v, int top);
+};
+
+class mandelMate0 : public mandelPath {
+protected:
+   int k, p, type;
+   mdouble a, b, *x, *y;
+   virtual int step(int M0);
+public:
+   mandelMate0() : mandelPath() { type = 0; x = 0; y = 0; }
+   virtual ~mandelMate0() { delete[] x; delete[] y; }
+   virtual void setM(int m);
+   //virtual int setMating(int k0, int p0, mdouble a0, mdouble b0, int);
+   virtual int setAnti(int k0, int p0, mdouble rQ, mdouble iQ);
+   virtual int init(mdouble f);
+   virtual int step(mdouble &rc, mdouble &ic);
+   virtual void getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int);
+   virtual int getSegments(mdouble *u, mdouble *v, int top) { return 0; }
+};
+
+class mandelMate1 : public mandelPath {
+protected:
+   int k, p;
+   mdouble a, b, *x, *y;
+   virtual int step(int M0);
+public:
+   mandelMate1() : mandelPath() { p = 0; x = 0; y = 0; }
+   virtual ~mandelMate1() { delete[] x; delete[] y; }
+   virtual void setM(int m);
+   virtual int setMating(int k0, int p0, mdouble a0, mdouble b0, int);
+   virtual int init(mdouble f);
+   virtual int step(mdouble &rc, mdouble &ic);
+   virtual void getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int);
+   virtual int getSegments(mdouble *u, mdouble *v, int top);
+};
+
+class mandelMate2 : public mandelPath {
+protected:
+   int k, p, type;
+   mdouble a, b, *x, *y;
+   virtual int step(int M0);
+public:
+   mandelMate2() : mandelPath() { type = 0; x = 0; y = 0; }
+   virtual ~mandelMate2() { delete[] x; delete[] y; }
+   virtual void setM(int m);
+   virtual int setMating(int k0, int p0, mdouble a0, mdouble b0, int);
+   virtual int setAnti(int k0, int p0, mdouble rQ, mdouble iQ);
+   virtual int init(mdouble f);
+   virtual int step(mdouble &rc, mdouble &ic);
+   virtual void getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int);
+   virtual int getSegments(mdouble *u, mdouble *v, int) { return 0; }
+};
+
+class mandelMate3 : public mandelPath {
+protected:
+   int k, p, type;
+   mdouble a, b, A, B, *x, *y, *X, *Y;
+   virtual int step(int M0);
+public:
+   mandelMate3() : mandelPath() { type = 0; p = 0; A = -0.122561166876654L;
+      B = 0.744861766619744L; x = 0; y = 0; X = 0; Y = 0; }
+   virtual ~mandelMate3()
+   { delete[] X; delete[] Y; delete[] x; delete[] y; }
+   virtual void setM(int m);
+   virtual int setMating(int k0, int p0, mdouble a0, mdouble b0, int top);
+   virtual int init(mdouble f);
+   virtual int step(mdouble &rc, mdouble &ic);
+   virtual void getParameters(
+      mdouble &ra, mdouble &ia, mdouble &, mdouble &, int);
+   virtual int getSegments(mdouble *u, mdouble *v, int top) { return 0; }
+};
+
 #endif //MNDYNAMICS_H_INCLUDED

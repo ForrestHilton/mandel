@@ -1,7 +1,7 @@
 /* qmnplane.h by Wolf Jung (C) 2007-2023.
    Declares classes QmnPlane, QmnDraw.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -18,7 +18,7 @@
 #include <QMouseEvent>
 #include <QThread>
 
-#include "mndynamo.h" //at present only for typedef mdouble
+#include "mndynamo.h"
 
 class QMutex;
 class QPainter;
@@ -70,15 +70,6 @@ class QSize;
 class QmnDraw : public QThread
 {
    Q_OBJECT
-public:
-   QmnDraw(QObject *parent = 0) : QThread(parent)
-   { stopnow = -2; rot = 0; }
-   ~QmnDraw();
-   void setRectPlane(int i0, int k0, int ix, int kx,
-      mdouble h0, mdouble v0, mdouble pw0, mdouble ph0, mdouble *rot0 = 0);
-   void draw(mndynamics *f0, uint dm0, int mode0, QImage *b0, QMutex *m0 = 0,
-      int alpha0 = 255);
-   void stop();
 protected:
    uint drawmode;
    int imid, kmid, imax, kmax, mode, alpha; volatile int stopnow;
@@ -88,6 +79,15 @@ protected:
    unsigned long int posToPoint(int i, int k, mdouble &x, mdouble &y) const;
    virtual void drawSphere();
    virtual void drawPlane();
+public:
+   QmnDraw(QObject *parent = 0) : QThread(parent)
+   { stopnow = -2; rot = 0; }
+   ~QmnDraw();
+   void setRectPlane(int i0, int k0, int ix, int kx,
+      mdouble h0, mdouble v0, mdouble pw0, mdouble ph0, mdouble *rot0 = 0);
+   void draw(mndynamics *f0, uint dm0, int mode0, QImage *b0, QMutex *m0 = 0,
+      int alpha0 = 255);
+   void stop();
 signals:
    void drawn(int kLast);
 };
@@ -95,6 +95,21 @@ signals:
 class QmnPlane : public QWidget
 {
    Q_OBJECT
+protected:
+   const static int Mmax;
+   uint nmax, oldnmax, oldmode;
+   int imax, kmax, hframe, vframe, type, *xpath, *ypath;
+   mdouble x, y, hmid, vmid, pw, ph,
+     oldhmid, oldvmid, oldrewidth, oldimwidth, *rot;
+   QMutex *mutex;
+   QImage *buffer, *oldbuffer;
+   QPixmap *cursor;
+   QmnDraw *thread;
+   bool rubberBandShown, active;
+   QRect rubberBand;
+   void mousePressEvent(QMouseEvent *event);
+   void mouseMoveEvent(QMouseEvent *event);
+   void mouseReleaseEvent(QMouseEvent *event);
 public:
    QmnPlane(int w = 8, int h = 8, int type0 = 0, QWidget *parent = 0);
    ~QmnPlane();
@@ -139,13 +154,15 @@ public:
 //   void drawPathSegment(mndPath *path, QColor color = Qt::white);
    void floodFill(int i, int k, QRgb rgbold, QRgb rgbnew);
    void green(mndynamics *f, int st, mdouble g, int quality = 5,
-     QColor color = Qt::white);
+     QColor color = Qt::darkMagenta);
    int traceRay(int signtype, mdouble t, mndynamics *f,
-     mdouble &x0, mdouble &y0, int quality = 5, QColor color = Qt::white);
+     mdouble &x0, mdouble &y0, int q = 5, QColor color = Qt::darkMagenta);
    int backRay(qulonglong num, qulonglong denom, mdouble &a, mdouble &b,
-     const int quality = 5, QColor color = Qt::white, int mode = 1);
+     const int q = 5, QColor color = Qt::magenta, int mode = 1);
+   void mandelRay(int sg, mndynamics *f, qulonglong N, qulonglong D,
+     mdouble &a, mdouble &b, QColor color = Qt::darkMagenta);
    int newtonRay(int signtype, qulonglong num, qulonglong denom, mdouble &a,
-     mdouble &b, int quality = 5, QColor color = Qt::white, int mode = 1);
+     mdouble &b, int q = 5, QColor color = Qt::darkMagenta, int mode = 1);
    int rayNewton(int signtype, uint n, mdouble a, mdouble b,
      mdouble &x, mdouble &y, mdouble rlog, mdouble ilog);
    int tricornNewton(int signtype, uint n, mdouble a, mdouble b,
@@ -164,21 +181,6 @@ public:
    bool isRunning() const;
 public slots:
    void display(int kLast);
-protected:
-   const static int Mmax;
-   uint nmax, oldnmax, oldmode;
-   int imax, kmax, hframe, vframe, type, *xpath, *ypath;
-   mdouble x, y, hmid, vmid, pw, ph,
-     oldhmid, oldvmid, oldrewidth, oldimwidth, *rot;
-   QMutex *mutex;
-   QImage *buffer, *oldbuffer;
-   QPixmap *cursor;
-   QmnDraw *thread;
-   bool rubberBandShown, active;
-   QRect rubberBand;
-   void mousePressEvent(QMouseEvent *event);
-   void mouseMoveEvent(QMouseEvent *event);
-   void mouseReleaseEvent(QMouseEvent *event);
 signals:
    void moved();
    void activated();
@@ -188,4 +190,28 @@ signals:
    void drawRequest();
 };
 
+class mandelAnimation : public QThread
+{  //Q_OBJECT
+public:
+   mandelAnimation(QObject *parent = 0) : QThread(parent) {}
+   //virtual ~mandelAnimation() {}
+   virtual void init(int *, mdouble *, qulonglong *) {}
+protected:
+   virtual void run() {}
+};
+
+class mandelSlow : public mandelAnimation
+{  //Q_OBJECT
+public:
+   mandelSlow(QObject *parent = 0) : mandelAnimation(parent) {}
+   //virtual ~mandelSlow();
+   virtual void init(int *ilist, mdouble *mdlist, qulonglong *qulist);
+protected:
+   int P, sym, imgno, imax; static const int jmax = 32;
+   QImage *image[jmax]; QPainter *p[jmax];
+   mdouble xmid, ymid, invf;
+   qulonglong D, N1, N2;
+   mandelPath *mpm;
+   virtual void run();
+};
 #endif //QMNPLANE_H_INCLUDED

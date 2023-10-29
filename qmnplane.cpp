@@ -1,7 +1,7 @@
 /* qmnplane.cpp by Wolf Jung (C) 2007-2023.
    Defines classes QmnPlane, QmnDraw.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -333,7 +333,7 @@ void QmnPlane::getUserPath(int M, mdouble *X, mdouble *Y)
    }
 }
 
-//returns 0 for on screen, 1 on mdouble distance, 2 far and i, k = 0
+//returns 0 for on screen, 1 on double distance, 2 far and i, k = 0
 int QmnPlane::pointToPos(mdouble x0, mdouble y0, int &i, int &k) const
 {  i = 0; k = 0; //for safety when returning 2
    if (!type)
@@ -411,7 +411,12 @@ void QmnPlane::paintEvent(QPaintEvent *event)
    { p.drawPixmap(QPoint(i - 8, k - 8), *cursor); if (!hframe) return; }
    p.setPen(Qt::yellow);
    if (!hframe)
-   { p.drawLine(i - 4, k, i + 4, k); p.drawLine(i, k - 4, i,  k + 4); }
+   //{ p.drawLine(i - 4, k, i + 4, k); p.drawLine(i, k - 4, i,  k + 4); }
+   {  p.drawLine(i - 9, k, i + 9, k); p.drawLine(i, k - 9, i,  k + 9);
+      p.setPen(Qt::darkBlue);
+      p.drawLine(i - 6, k, i - 5, k); p.drawLine(i, k - 6, i,  k - 5);
+      p.drawLine(i + 5, k, i + 6, k); p.drawLine(i, k + 5, i,  k + 6);
+   }//*/
    else p.drawRect(i - 4*hframe, k - 4*vframe, 8*hframe-1, 8*vframe-1);
 }
 
@@ -1123,7 +1128,25 @@ int QmnPlane::backRay(qulonglong num, qulonglong denom, mdouble &a, mdouble &b,
    delete p; /*delete[] Y; delete[] X;*/ update(); return 0;
 } //backRay
 
-//Time ~ nmax^2 , therefore limited  nmax .
+void QmnPlane::mandelRay(int sg, mndynamics *f, qulonglong N, qulonglong D,
+   mdouble &a, mdouble &b, QColor color)
+{  int i0, k0, i, k, points, n = (int)(nmax);
+   if (n > 5000) n = 5000; n += 10; //limited time ~ nmax^2
+   //now up to n iterations with 6 segments each
+   mdouble *xlist = new mdouble[6*n + 1], *ylist = new mdouble[6*n + 1];
+   points = f->mandelRay(sg, n, N, D, xlist, ylist);
+   a = xlist[0]; b = ylist[0];
+   if (points < 0)
+   { a = 0.0L; b = 0.0L; delete[] ylist; delete[] xlist; return; }
+   stop(); QPainter *p = new QPainter(buffer); p->setPen(color);
+   for (n = 1; n < points; n++)
+   {  if(pointToPos(xlist[n], ylist[n], i0, k0) > 1
+         || pointToPos(xlist[n + 1], ylist[n + 1], i, k) > 1) continue;
+      p->drawLine(i0, k0, i, k);
+   }
+   delete p; update(); delete[] ylist; delete[] xlist;
+}
+  
 int QmnPlane::newtonRay(int signtype, qulonglong N, qulonglong D,
    mdouble &a, mdouble &b, int q, QColor color, int mode) //5, white, 1
 {  uint n; int j, i, k, i0, k0; mndAngle t; t.setAngle(N, D, j);
@@ -1524,3 +1547,85 @@ void QmnPlane::stop()
 
 bool QmnPlane::isRunning() const
 { return thread->isRunning(); }
+
+/////////////////////////////////////////////////////////////////
+
+void mandelSlow::init(int *ilist, mdouble *mdlist, qulonglong *qulist)
+{  P = ilist[0]; sym = ilist[1]; imgno = ilist[2]; imax = ilist[3];
+   xmid = mdlist[1]; ymid = mdlist[2]; invf = ((mdouble)(imax))/mdlist[0];
+   D = qulist[0]; N1 = qulist[1]; N2 = qulist[2];
+   if (!P) mpm = new mandelMating();
+   if (P == 1) mpm = new mandelMate1();
+   if (P == 2)
+   { mpm = new mandelMating(); mpm->setMating(0, 2, -1.0L, 0.0L, 1); } 
+   if (P == 3)
+   {  mpm = new mandelMating();
+      mpm->setMating(0, 3, -1.754877666246693L, 0.0L, 1);
+      if (sym < 0)
+      {  sym = 0;
+         mpm->setMating(0, 3, -0.122561166876654L, 0.744861766619744L, 1);
+      }
+   } 
+   if (sym) N2 = D >> 1;
+   for (int j = 0; j < jmax; j++)
+   {  image[j] = new QImage(2*imax, 2*imax, QImage::Format_RGB32);
+      p[j] = new QPainter(image[j]); p[j]->setPen(Qt::red);
+   }
+   start(QThread::LowPriority);
+}
+
+//      mndynamics *F = new mndlbrot(2);
+
+void mandelSlow::run()
+{  int img, j, k, i1, k1, i0[jmax], k0[jmax];
+   mdouble rc, ic, rd, id; qulonglong N, N0, D0; QString name;
+/*   QImage *image[jmax]; QPainter *p[jmax];
+   for (j = 0; j < jmax; j++)
+   {  image[j] = new QImage(2*imax, 2*imax, QImage::Format_RGB32);
+      p[j] = new QPainter(image[j]); p[j]->setPen(Qt::red);
+   }//*/
+   for (img = imgno; img <= imgno + 4; img++)
+   {  name = QString("1025.png");
+      for (j = 0; j < jmax; j++) image[j]->load(name, "PNG");
+     /* for (N = N1; N <= N2; N++)
+      {  N0 = N; D0 = D; k = 0;
+         while (!(N0 & 1ULL) && !(D0 & 1ULL)) { N0 >>= 1; D0 >>= 1; }
+         while (!(D0 & 1ULL)) { k++; D0 >>= 1; }
+        // if (!k || dplane->newtonRay(1, N, D, rc, ic, 5, Qt::white, 10) > 1
+        //  || F->find(1, k, 6, rc, ic) ) continue;
+  rc = 0.0L; ic = 1.0L; k = 1;
+         mpm->setMating(k, 6, rc, ic, (P ? 1 : 0));
+         if (!P)
+         {  if (k <= 1) continue; //here N/D <= 1/2 :
+        //    if (dplane->newtonRay(1, N, D>>1, rc, ic, 5, Qt::white, 10) > 1
+        //      || F->find(1, k - 1, 6, rc, ic) ) continue;
+            mpm->setMating(k - 1, 6, rc, -ic, 0);
+         }
+         mpm->init((img - 1025)*0.040001L);
+         for (j = 0; j < jmax; j++)
+         {  if (j) mpm->step(rc, ic);
+            mpm->getParameters(rc, ic, rd, id, P);
+            if (sym < 0) { rd = rc*rc + ic*ic; rc /= rd; ic = -ic/rd; }
+            //i1 = imax + (int)(invf*(rc - xmid));
+            //k1 = imax + (int)(invf*(ymid - ic));
+            rc = invf*(rc - xmid); ic = invf*(ymid - ic);
+            if (rc*rc + ic*ic > 1.0e15L) continue;
+            i1 = imax + (int)(rc); k1 = imax + (int)(ic);
+            if (N > N1)
+            {  p[j]->drawLine(i0[j], k0[j], i1, k1);
+               if (sym)
+                p[j]->drawLine(i0[j], 2*imax - k0[j] - 1, i1, 2*imax - k1 - 1);
+            }
+            i0[j] = i1; k0[j] = k1;
+            if (sym && P && j >= (P == 2 ? 12 : 8) && 3ULL*N >= D) break;
+         }
+      } //*/
+      for (j = 0; j < jmax; j++)
+      { name = QString("%1.png").arg(img + 25*j); image[j]->save(name, "PNG");}
+   }
+}
+/*
+mandelSlow::~mandelSlow()
+{  terminate(); wait(); delete mpm; //delete F;
+   for (int j = 0; j < jmax; j++) { delete p[j]; delete image[j]; }
+}//*/

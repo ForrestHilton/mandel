@@ -2,7 +2,7 @@
    mndlbrot, mndmulti, mndbfpoly, mndcubic, mndquartic, mndsurge,
    mndrealcubic, mndtricorn, mndhenon, mndifs, mndlambda, mndScale.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -672,7 +672,52 @@ int mndlbrot::similarity(uint preper, uint per, mdouble &a, mdouble &b,
    u = a + xp*t[0] - yp*t[1]; t[1] = b + xp*t[1] + yp*t[0]; t[0] = u;
    u = xp*t[2] - yp*t[3]; t[3] = xp*t[3] + yp*t[2]; t[2] = u;
    return 0;
- }
+}
+
+/* Compute points on the ray, with #segments = quality between, for example,
+   R = 1000 and R = sqrt(1000) when n = 1. Phi is approximated with the
+   2^n-th root of f^n , so 2^n-th root(f^n) = 2^n-th root(R) * e^{it}
+   becomes f^n = R*e^{i 2^n t}, which is solved with Newton method.
+   Note that doubling an mdouble instead of the fraction N/D is inaccurate.
+   The list of 4*nmax points is drawn within QmnPlane::mandelRay().
+   When only the endpoint is needed without drawing, use nmax < 0.
+*/
+int mndlbrot::mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+  mdouble *xlist, mdouble *ylist)
+{  int n, m, j, k, points = 0, draw = 1, quality = 6;
+   if (nmax < 0) { draw = 0; quality = 4; nmax = -nmax; } //only list[0]
+   mdouble a, b, x0, y0, x, y, xp = 4.0L*logTen, yp, u, v, w, R[quality];
+   for (m = 0; m < quality; m++)
+      R[m] = exp(xp*exp((m*logTwo)/quality));
+   yp = 2.0L*PI*((mdouble)(N))/((mdouble)(D));
+   w = exp(xp); x = w*cos(yp); y = w*sin(yp);
+   if (sg < 0) { a = A; b = B; } else x += 0.5L; //Phi(c) ~ c + 0.5
+   for (n = 1; n <= nmax; n++)
+   {  mndAngle::twice(N, D);
+      for (m = quality - 1; m >= 0; m--)
+      {  v = 2.0L*PI*((mdouble)(N))/((mdouble)(D));
+         u = R[m]*cos(v); v = R[m]*sin(v);
+         for (k = 1; k <= 60; k++)
+         {  x0 = x; y0 = y; xp = 1.0L; yp = 0.0L; if (sg > 0) { a = x; b = y; }
+            for (j = 1; j <= n; j++)
+            {  //iteration zp = 2*z*zp + 1, z = z^2 + c
+               w = 2.0L*(x*xp - y*yp); yp = 2.0L*(x*yp + y*xp); xp = w;
+               if (sg > 0) xp ++; //derivative of + c only in parameter plane
+               w = x*x - y*y + a; y = 2.0L*x*y + b; x = w;
+            }
+            //Newton z = z - (z - value)/zp
+            x -= u; y -= v; w = xp*xp + yp*yp;
+            if (w < 1.0e-100L || w > 1.0e100L)
+               return (j < 20 ? -points : points);
+            xp /= w; yp /= w; w = x*xp + y*yp; yp = y*xp - x*yp; xp = w;
+            x = x0 - xp; y = y0 - yp; if (xp*xp + yp*yp < 1.0e-35) break;
+         }
+         points++; xlist[0] = x; ylist[0] = y;
+         if (draw) { xlist[points] = x; ylist[points] = y; }
+      }
+   }
+   return points;
+}
 
 //////////////////////////////////////////////////////////////////////
 
@@ -872,10 +917,46 @@ int mndmulti::turnsign(mdouble x, mdouble y)
 } //turnsign
 
 //mdouble mndmulti::green(int sg, mdouble x, mdouble y)
-mdouble mndmulti::green(int, mdouble, mdouble)
-{
+mdouble mndmulti::green(int, mdouble, mdouble) { return 0; }
 
-   return 0;
+int mndmulti::mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+  mdouble *xlist, mdouble *ylist)
+{  if (subtype != 4) return 0;
+   int n, m, j, k, points = 0, draw = 1, quality = 6;
+   if (nmax < 0) { draw = 0; quality = 5; nmax = -nmax; } //only list[0]
+   mdouble a, b, x0, y0, x, y, X, Y, xp = 5.0L*logTen, yp, u, v, w, R[quality];
+   for (m = 0; m < quality; m++)
+      R[m] = exp(xp*exp((m*2.0L*logTwo)/quality));
+   yp = 2.0L*PI*((mdouble)(N))/((mdouble)(D));
+   w = exp(xp); x = w*cos(yp); y = w*sin(yp);
+   if (sg < 0) { a = A; b = B; }
+   for (n = 1; n <= nmax; n++)
+   {  N <<= 2; while (N >= D) N -= D;
+      for (m = quality - 1; m >= 0; m--)
+      {  v = 2.0L*PI*((mdouble)(N))/((mdouble)(D));
+         u = R[m]*cos(v); v = R[m]*sin(v);
+         for (k = 1; k <= 60; k++)
+         {  x0 = x; y0 = y; xp = 1.0L; yp = 0.0L; if (sg > 0) { a = x; b = y; }
+            for (j = 1; j <= n; j++)
+            {  //iteration zp = 4*z^3*zp + 1, z = z^4 + c
+               X = x*x - y*y; Y = 2.0L*x*y;
+               w = X*xp - Y*yp; yp = X*yp + Y*xp;
+               xp = 4.0L*(x*w - y*yp); yp = 4.0L*(x*yp + y*w);
+               if (sg > 0) xp ++; //derivative of + c only in parameter plane
+               x = X*X - Y*Y + a; y = 2.0L*X*Y + b;
+            }
+            //Newton z = z - (z - value)/zp
+            x -= u; y -= v; w = xp*xp + yp*yp;
+            if (w < 1.0e-100L || w > 1.0e100L)
+               return (j < 20 ? -points : points);
+            xp /= w; yp /= w; w = x*xp + y*yp; yp = y*xp - x*yp; xp = w;
+            x = x0 - xp; y = y0 - yp; if (xp*xp + yp*yp < 1.0e-35) break;
+         }
+         points++; xlist[0] = x; ylist[0] = y;
+         if (draw) { xlist[points] = x; ylist[points] = y; }
+      }
+   }
+   return points;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -898,14 +979,18 @@ void mndbfpoly::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
 
 //////////////////////////////////////////////////////////////////////
 
-void mndcubic::critical(mdouble, mdouble, mdouble &x, mdouble &y) const
+void mndcubic::critical(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  x = 1.0; y = 0;
    if (subtype == 1 && rb*rb + ib*ib > 0 && (maxiter & 1) ) x = -1.0;
+   if (subtype != 5) return;
+   mdouble u = a*a - b*b + 1.0L, v = 2.0L*a*b, w = 3.0L*(a*a + b*b);
+   x = (u*a + v*b)/w; y = (v*a - u*b)/w; 
 }
 
 void mndcubic::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
-{  if (subtype == 6) { frabbit(a, b, x, y); return; }
-   if (subtype == 5 || subtype == 7) { fbasilica(a, b, x, y); return; }
+{  if (subtype == 6) { f3(a, b, x, y); return; }
+   if (subtype == 5) { f2(a, b, x, y); return; }
+   if (subtype == 7) { fbasilica(a, b, x, y); return; }
    mdouble u, v, w; u = x*x - y*y - 3; v = 2*x*y;
    w = x*u - y*v; y = x*v + y*u; x = w; if (subtype > 1) x -= 2; //odd
    w = a*x - b*y; y = a*y + b*x; x = w;
@@ -915,6 +1000,15 @@ void mndcubic::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
    if (subtype == 4) x--; //
 } // c(z^3 - 3z - 2) + b
 
+void mndcubic::f2(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+{  mdouble ra, ia, u = a*a - b*b + 1.0L, v = 2.0L*a*b, w = 3.0L*(a*a + b*b);
+   ra = (u*a + v*b)/w; ia = (v*a - u*b)/w; 
+   u = ra*ra - ia*ia; v = 2.0L*ra*ia;
+   a += 2.0*(ia*v - ra*u) - ra; b -= 2.0L*(ra*v + ia*u) + ia;
+   u = x*x - y*y - 3.0L*u; v = 2.0L*x*y - 3.0L*v;
+   w = x*u - y*v + a; y = x*v + y*u + b; x = w;
+} //z^3 - 3a^2z - 2a^3 - a + c, a = (c^2 + 1)/(3c)
+
 void mndcubic::fbasilica(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mdouble A = a*a - b*b, B = 2*a*b;
    if (subtype == 5) { A -= (a + 2); B -= b; }
@@ -923,10 +1017,10 @@ void mndcubic::fbasilica(mdouble a, mdouble b, mdouble &x, mdouble &y) const
    mdouble u, v, w; u = x*x - y*y - 3; v = 2*x*y;
    w = x*u - y*v; y = x*v + y*u; x = w - 2;
    w = a - (A*x + B*y)/R; y = b + (B*x - A*y)/R; x = w;
-} // b - (z^3 - 3z - 2)/(b^2 - b - 2) , b = c
+} // b - (z^3 - 3z - 2)/(b^2 - b - 2) , b = c  (old S2)
   // b - (z^3 - 3z - 2)/(b^2 - 2b + 1) , b = c
 
-void mndcubic::frabbit(mdouble a, mdouble b, mdouble &x, mdouble &y) const
+void mndcubic::f3(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 {  mndplex c(a, b), z(x, y), c3 = c*c*c, c4 = c3*c - c + 1.0;
    c3 = c3 - c + 1.0; //c4 = c^4 - c + 1, c3 = c^3 - c + 1
    if (norm(c4 - c3) < 1e-30 || norm(c3) < 1e-30 ||
@@ -936,7 +1030,8 @@ void mndcubic::frabbit(mdouble a, mdouble b, mdouble &x, mdouble &y) const
 } // A(z^3 - 3z - 2) + b
 
 void mndcubic::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
-{  if (!sg && subtype == 1) { rb = xmid; ib = rewidth; return; }
+{  if (subtype == 5) { xmid = 0; rewidth = (sg > 0 ? 2.5 : 2); return; }
+   if (!sg && subtype == 1) { rb = xmid; ib = rewidth; return; }
    xmid = 0; rewidth = 3.0; if (subtype == 1 || subtype == 4) rewidth = 2.8;
    if (subtype == 7) rewidth = 8.0;
    if (sg > 0)
@@ -995,7 +1090,8 @@ void mndcubic::prepare(int sg, uint nmax, uint &dm, mdouble *t)
 }
 
 uint mndcubic::pixcolor(mdouble x, mdouble y)
-{  if (drawmode < 4) return mndynamics::pixcolor(x, y);
+{  //double u = x*x - y*y; y = 2.0L*x*y; x = u;
+   if (drawmode < 4) return mndynamics::pixcolor(x, y);
    uint cl1; //subtype <= 4, drawmode = 4
    if (sign < 0) { cl1 = marty(A, B, x, y); return (cl1 ? cl1 : 10); }
    cl1 = marty(x, y, 1.0, 0);
@@ -1030,18 +1126,87 @@ uint mndcubic::marty(mdouble a, mdouble b, mdouble x, mdouble y)
 //////////////////////////////////////////////////////////////////////
 
 void mandelQPPQ::f(mdouble a, mdouble b, mdouble &x, mdouble &y) const
-{  mdouble u = a*a + b*b, v, ai, bi; if (u < 1e-10) return; ai = a/u; bi = -b/u;
-   u = x*x - y*y; v = 2.0*x*y;
-   if (subtype & 1) { u--; x = a*u - b*v; y = a*v + b*u; }
-   else { x = ai*u - bi*v + 1.0; y = ai*v + bi*u; }
-   u = x*x - y*y; v = 2.0*x*y;
-   if (subtype & 2) { u--; x = a*u - b*v; y = a*v + b*u; }
-   else { x = ai*u - bi*v + 1.0; y = ai*v + bi*u; }
+{  mdouble u, aa = b*b - a*a, bb = -2.0L*a*b;
+   if (subtype & 1) { u = a; a = aa; aa = u; u = b; b = bb; bb = u; }
+   u = x*x - y*y + a; y = 2.0L*x*y + b; x = u;
+   u = x*x - y*y + aa; y = 2.0L*x*y + bb; x = u;
 }
-// P c(z^2 - 1)  and  Q = z^2/c + 1 , performs  QP  or  PQ
+// P = z^2 - c^2  and  Q = z^2 + c, performs  QP  or  PQ */
 
 void mandelQPPQ::startPlane(int sg, mdouble &xmid, mdouble &rewidth) const
-{ xmid = (sg > 0 ? -1.0 : 0.0); rewidth = 2.0; }
+{ xmid = (sg > 0 ? -0.25L : 0.0L); rewidth = (sg > 0 ? 1.25L : 2.0L); }
+
+int mandelQPPQ::find(int sg, uint preper, uint per,
+  mdouble &x, mdouble &y) const
+{  if (preper < 2 || per > 1 || sg < 0) return -1;
+   int j, l; mdouble a, b, x0, y0, x1, y1, xx, yy, xp, yp, xp1, yp1, w;
+   for (l = 1; l <= 30; l++)
+   {  x0 = x; y0 = y; a = x; b = y;
+      x = a*a - b*b; y = 2.0L*a*b; xp = 2.0L*a; yp = 2.0L*b;
+      for (j = preper; j > 0; j--)
+      {  // zp = 4(z^3 + cz)*zp + 2z^2, z = z^4 + 2cz^2
+         xx = 4.0L*(x*(x*x - 3.0L*y*y) + a*x - b*y);
+         yy = 4.0L*((3.0L*x*x - y*y)*y + a*y + b*x);
+         w = xx*xp - yy*yp; yp =xx*yp + yy*xp; xp = w;
+         xx = x*x - y*y; yy = 2.0L*x*y; xp += 2.0L*xx; yp += 2.0L*yy;
+         x = xx + 2.0L*a; y = yy + 2.0L*b;
+         w = x*xx - y*yy; y = x*yy + y*xx; x = w;
+         if (j == 2) { x1 = x; y1 = y; xp1 = xp; yp1 = yp; }
+      }
+      x += x1; y += y1; xp += xp1; yp += yp1; w = xp*xp + yp*yp;
+      if (w < 1.0e-100L || w > 1.0e100L) return l;
+      xp /= w; yp /= w; w = x*xp + y*yp; yp = y*xp - x*yp; xp = w;
+      x = x0 - xp; y = y0 - yp; if (xp*xp + yp*yp < 1.0e-37) break;
+   }
+   return 0;
+}
+
+int mandelQPPQ::mandelRay(int sg, int nmax, qulonglong N, qulonglong D,
+  mdouble *xlist, mdouble *ylist)
+{  if (sg < 0 && subtype & 1) return 0;
+   int n, m, j, k, points = 0, draw = 1, quality = 6;
+   if (nmax < 0) { draw = 0; quality = 4; nmax = -nmax; }
+   mdouble a, b, x0, y0, x, y, xx, yy,
+     xp = 5.0L*logTen, yp, u, v, w = exp(xp), R[quality];
+   for (m = 0; m < quality; m++)
+      R[m] = exp(xp*exp((m*2.0L*logTwo)/quality));
+   yp = 2.0L*PI*((mdouble)(N))/((mdouble)(D)); x = w*cos(yp); y = w*sin(yp);
+   if (sg > 0) { N <<= 1; if (N >= D) N -= D; } // PhiM(q) = sqrt(Phiq(q^2)) 
+   else { a = A; b = B; }
+   for (n = 1; n <= nmax; n++)
+   {  N <<= 2; while (N >= D) N -= D;
+      for (m = quality - 1; m >= 0; m--)
+      {  v = 2.0L*PI*((mdouble)(N))/((mdouble)(D));
+         u = R[m]*cos(v); v = R[m]*sin(v);
+         for (k = 1; k <= 60; k++)
+         {  x0 = x; y0 = y; xp = 1.0L; yp = 0.0L;
+            if (sg > 0)
+            {  a = x; b = y; x = a*a - b*b; y = 2.0L*a*b;
+               xp = 2.0L*a; yp = 2.0L*b;
+            }
+            for (j = 1; j <= n; j++)
+            {  // zp = 4(z^3 + cz)*zp + 2z^2, z = z^4 + 2cz^2
+               xx = 4.0L*(x*(x*x - 3.0L*y*y) + a*x - b*y);
+               yy = 4.0L*((3.0L*x*x - y*y)*y + a*y + b*x);
+               w = xx*xp - yy*yp; yp =xx*yp + yy*xp; xp = w;
+               xx = x*x - y*y; yy = 2.0L*x*y;
+               if (sg > 0) { xp += 2.0L*xx; yp += 2.0L*yy; }
+               x = xx + 2.0L*a; y = yy + 2.0L*b;
+               w = x*xx - y*yy; y = x*yy + y*xx; x = w;
+            }
+            x -= u; y -= v; w = xp*xp + yp*yp;
+            if (w < 1.0e-100L || w > 1.0e100L)
+               return (j < 20 ? -points : points);
+            xp /= w; yp /= w; w = x*xp + y*yp; yp = y*xp - x*yp; xp = w;
+            x = x0 - xp; y = y0 - yp;
+            if (xp*xp + yp*yp < 1.0e-35 && k >= 5) break;
+         }
+         points++; xlist[0] = x; ylist[0] = y;
+         if (draw) { xlist[points] = x; ylist[points] = y; }
+      }
+   }
+   return points;
+}
 
 //////////////////////////////////////////////////////////////////////
 

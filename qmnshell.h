@@ -6,7 +6,7 @@
    [defined in qmndemos.cpp :] QmnDemo, QmnDemoDS, QmnDemoPB, QmnDemoER,
    QmnDemoCC, QmnDemoRN, QmnDemoAS, QmnDemoLS, QmnDemoQC, QmnDemoCZ.
 
-   These classes are part of Mandel 5.18, which is free software; you can
+   These classes are part of Mandel 5.19, which is free software; you can
    redistribute and / or modify them under the terms of the GNU General
    Public License as published by the Free Software Foundation; either
    version 3, or (at your option) any later version. In short: there is
@@ -98,7 +98,8 @@ protected:
    bool updateRegion, psizeChanged;
    mndynamics *f;
    mndScale *as;
-   mandelPath *mpath;
+   mndPath *mpath;
+   mandelAnimation *mani[5];
    QWidget *thespace;
    QLineEdit *pcoords, *dcoords;
    QmnHelp *helptabs;
@@ -141,6 +142,8 @@ protected:
       *vidAct3,
       *vidAct4,
       *vidAct5,
+      *slowmateAct,
+      *slowantiAct,
       *veinAct2,
       *veinAct3,
       *limbAct2,
@@ -228,7 +231,7 @@ protected:
       *f4Act,
       *f4Acts[10],
       *f5Act,
-      *f5Acts[14],
+      *f5Acts[16],
       *f6Act,
       *f6Acts[13],
       *f7Act,
